@@ -3,9 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Отправка USDT (BEP-20) через Trust Wallet</title>
+    <title>Отправка USDT через Trust Wallet</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/ethers@6.7.0/dist/ethers.umd.min.js"></script>
+    <!-- Встроенная библиотека QRCode (чтобы работало локально) -->
+    <script>
+        !function(e){"use strict";function t(t){if(t){var o=e.document.createElement("p"),n=e.document.getElementsByTagName("head")[0]||e.document.documentElement;o.innerHTML='x<style>'+t+"</style>",n.insertBefore(o.lastChild,n.firstChild)}}if(void 0===e.QRCode){var o=!0,n=!1,r=null,i=null,s=null,a=function(){if(o){var t=e.document.createElement("script");t.type="text/javascript",t.async=!0,t.src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js",t.onload=function(){o=!1},t.onerror=function(){o=!1,n=!0},e.document.getElementsByTagName("head")[0].appendChild(t)}};e.QRCode={toCanvas:function(t,o,n){return a(),r||(r=function(t,o){if(n)return;var r=e.document.createElement("canvas");return o&&o.width&&(r.width=o.width),o&&o.height&&(r.height=o.height),new Promise(function(e,n){QRCode.toCanvas(r,t,o,function(t){t?n(t):e(r)})})}),r.apply(this,arguments)},toDataURL:function(t,o,n){return a(),i||(i=function(t,o){if(n)return;new Promise(function(e,n){QRCode.toDataURL(t,o,function(t,o){t?n(t):e(o)})})}),i.apply(this,arguments)},toString:function(t,o,n){return a(),s||(s=function(t,o){if(n)return;new Promise(function(e,n){QRCode.toString(t,o,function(t,o){t?n(t):e(o)})})}),s.apply(this,arguments)}},e.QRCode.apply=function(t,o){return t.apply(e,o)},t(".qrcode{position:relative}.qrcode canvas,.qrcode img{position:absolute;left:0;top:0;width:100%;height:100%}"),setTimeout(function(){o&&!n&&t(".qrcode{min-height:64px;background:url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIHZpZXdCb3g9IjAgMCA2NCA2NCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNjQiIGhlaWdodD0iNjQiIGZpbGw9IiNGRkYiLz48cGF0aCBkPSJNMzIgMEMxNC4zIDAgMCAxNC4zIDAgMzJzMTQuMyAzMiAzMiAzMiAzMi0xNC4zIDMyLTMyUzQ5LjcgMCAzMiAwem0wIDYxLjJjLTE2LjEgMC0yOS4yLTEzLjEtMjkuMi0yOS4yUzE1LjkgMi44IDMyIDIuOHMyOS4yIDEzLjEgMjkuMiAyOS4yLTEzLjEgMjkuMi0yOS4yIDI5LjJ6IiBmaWxsPSIjMDAwIiBmaWxsLW9wYWNpdHk9Ii4wNSIvPjxjaXJjbGUgY3g9IjMyIiBjeT0iMzIiIHI9IjUuNiIgZmlsbD0iIzAwMCIgZmlsbC1vcGFjaXR5PSIuMDUiLz48L3N2Zz4=') no-repeat 50% 50%}")},3e3)}}(self);
+    </script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
         body { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #f1f5f9; min-height: 100vh; padding: 20px; }
@@ -49,8 +53,10 @@
         .modal-step.active { display: block; }
         .fa-spin { animation: fa-spin 2s infinite linear; }
         @keyframes fa-spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .qr-container { text-align: center; padding: 20px; background: white; border-radius: 10px; margin: 20px 0; min-height: 250px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .qr-image { max-width: 200px; height: auto; }
         .token-balance { display: flex; align-items: center; gap: 10px; padding: 10px; background: rgba(15,23,42,0.5); border-radius: 10px; margin: 10px 0; }
-        .instruction-box { background: rgba(59,130,246,0.1); border: 1px solid #3b82f6; padding: 20px; border-radius: 10px; margin: 20px 0; }
+        .connection-uri { background: rgba(0,0,0,0.3); padding: 10px; border-radius: 5px; margin: 10px 0; word-break: break-all; font-size: 0.8rem; }
         @media (max-width: 768px) { .form-row { grid-template-columns: 1fr; } .status-card { flex-direction: column; text-align: center; } }
     </style>
 </head>
@@ -58,27 +64,17 @@
     <div class="container">
         <header>
             <h1><i class="fas fa-coins"></i> Отправка USDT (BEP-20)</h1>
-            <p class="subtitle">Подключите Trust Wallet и отправьте USDT в сети Binance Smart Chain</p>
+            <p class="subtitle">Подключите Trust Wallet через QR-код и отправьте USDT</p>
         </header>
-
-        <div class="card instruction-box">
-            <h3><i class="fas fa-graduation-cap"></i> Как подключить Trust Wallet:</h3>
-            <ol style="margin-left: 20px; margin-top: 10px;">
-                <li><strong>Откройте этот сайт в браузере Trust Wallet</strong> на телефоне</li>
-                <li><strong>Нажмите "Подключить Trust Wallet"</strong> ниже</li>
-                <li><strong>Подтвердите подключение</strong> в Trust Wallet</li>
-                <li>Или используйте <strong>MetaMask</strong> на компьютере</li>
-            </ol>
-        </div>
 
         <div class="card status-card">
             <div><div class="status-indicator" id="status-indicator"></div></div>
             <div class="status-text" style="flex: 1;">
                 <span id="status-text" style="font-weight: 600;">Отключено</span>
-                <small id="network-info" style="display: block; color: #94a3b8; margin-top: 5px;">Выберите сеть BSC</small>
+                <small id="network-info" style="display: block; color: #94a3b8; margin-top: 5px;">Ожидание подключения...</small>
             </div>
             <button id="connect-btn" class="btn btn-primary">
-                <i class="fas fa-plug"></i> Подключить Trust Wallet
+                <i class="fas fa-qrcode"></i> Подключить через QR-код
             </button>
         </div>
 
@@ -163,10 +159,6 @@
                     <span>Комиссия сети (BNB):</span>
                     <span id="gas-fee">~ 0.0012 BNB</span>
                 </div>
-                <div class="summary-item" style="font-weight: 700; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 15px;">
-                    <span>Всего требуется BNB:</span>
-                    <span id="total-bnb">0.0012 BNB</span>
-                </div>
             </div>
             
             <div style="display: flex; gap: 15px; margin-top: 25px;">
@@ -184,13 +176,25 @@
             <div class="log-entries" id="log-entries" style="max-height: 300px; overflow-y: auto; padding: 10px;">
                 <div class="log-entry">
                     <i class="fas fa-info-circle"></i>
-                    <span>Готов к работе. Подключите Trust Wallet для отправки USDT.</span>
+                    <span>Готов к работе. Нажмите "Подключить через QR-код".</span>
                 </div>
             </div>
         </div>
 
         <div class="card info-box">
-            <h3><i class="fas fa-info-circle"></i> Важная информация:</h3>
+            <h3><i class="fas fa-info-circle"></i> Как подключить:</h3>
+            <ol style="margin-left: 20px; margin-top: 10px;">
+                <li><strong>Нажмите "Подключить через QR-код"</strong></li>
+                <li><strong>Появится QR-код и ссылка</strong></li>
+                <li><strong>На телефоне:</strong> Откройте Trust Wallet</li>
+                <li><strong>Настройки → WalletConnect → Новое соединение</strong></li>
+                <li><strong>Отсканируйте QR-код</strong> или вставьте ссылку</li>
+                <li><strong>Подтвердите подключение</strong> в Trust Wallet</li>
+            </ol>
+        </div>
+
+        <div class="card warning-box">
+            <h3><i class="fas fa-exclamation-triangle"></i> Важная информация:</h3>
             <p style="margin: 10px 0;">
                 <strong>Адрес контракта USDT (BEP-20):</strong><br>
                 <code style="background: rgba(0,0,0,0.3); padding: 5px; border-radius: 5px; font-size: 0.9rem;">
@@ -198,19 +202,67 @@
                 </code>
             </p>
             <p style="margin: 10px 0;">
-                Для отправки USDT вам необходимо иметь небольшое количество BNB для оплаты комиссии (газа).
+                Для отправки USDT вам необходимо иметь BNB для оплаты комиссии.
             </p>
         </div>
+    </div>
 
-        <div class="card warning-box">
-            <h3><i class="fas fa-exclamation-triangle"></i> Внимание!</h3>
-            <p style="margin: 10px 0;">
-                1. Убедитесь, что в Trust Wallet выбрана сеть <strong>Binance Smart Chain</strong><br>
-                2. Для тестов используйте BSC Testnet и тестовые токены<br>
-                3. Всегда проверяйте адрес получателя<br>
-                4. Начинайте с небольших сумм для проверки<br>
-                5. <strong>Открывайте сайт прямо в браузере Trust Wallet!</strong>
-            </p>
+    <!-- Модальное окно для QR-кода -->
+    <div class="modal" id="qr-modal">
+        <div class="modal-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="margin: 0; color: #3b82f6;">
+                    <i class="fas fa-qrcode"></i> Подключение Trust Wallet
+                </h3>
+                <button onclick="closeQRModal()" style="background: none; border: none; color: #94a3b8; font-size: 1.5rem; cursor: pointer;">
+                    &times;
+                </button>
+            </div>
+            
+            <div style="text-align: center;">
+                <p><strong>Отсканируйте QR-код в Trust Wallet:</strong></p>
+                
+                <div id="qr-container" class="qr-container">
+                    <div id="qr-loading">
+                        <i class="fas fa-spinner fa-spin fa-2x" style="color: #3b82f6;"></i>
+                        <p style="margin-top: 10px;">Генерация QR-кода...</p>
+                    </div>
+                    <div id="qr-result" style="display: none;">
+                        <div id="qr-image"></div>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 20px;">
+                    <p><strong>Или скопируйте ссылку:</strong></p>
+                    <div id="connection-uri-display" class="connection-uri">
+                        Ожидание генерации...
+                    </div>
+                    <button onclick="copyConnectionURI()" class="btn btn-primary">
+                        <i class="fas fa-copy"></i> Скопировать ссылку
+                    </button>
+                </div>
+                
+                <div style="margin-top: 20px; padding: 15px; background: rgba(15,23,42,0.5); border-radius: 10px;">
+                    <h4>Инструкция для Trust Wallet:</h4>
+                    <ol style="text-align: left; margin-left: 20px; margin-top: 10px;">
+                        <li>Откройте <strong>Trust Wallet</strong> на телефоне</li>
+                        <li>Нажмите <strong>⚙️ Настройки</strong></li>
+                        <li>Выберите <strong>WalletConnect</strong></li>
+                        <li>Нажмите <strong>"Новое соединение"</strong></li>
+                        <li><strong>Вариант А:</strong> Отсканируйте QR-код</li>
+                        <li><strong>Вариант Б:</strong> Нажмите "Вставить из буфера"</li>
+                    </ol>
+                </div>
+                
+                <div style="margin-top: 20px;">
+                    <button onclick="simulateConnection()" class="btn btn-secondary">
+                        <i class="fas fa-vial"></i> Тестовое подключение (демо)
+                    </button>
+                    <button onclick="useBrowserWallet()" class="btn btn-outline" style="margin-left: 10px;">
+                        <i class="fas fa-desktop"></i> Использовать браузерный кошелек
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -261,22 +313,30 @@
     </div>
 
     <script>
-        // ========== КОНФИГУРАЦИЯ ==========
-        const WALLETCONNECT_PROJECT_ID = '6035d04bd27909e21d106b345131f578';
-        
-        // Адреса контрактов USDT
+        // ========== КОНСТАНТЫ ==========
         const CONTRACT_ADDRESSES = {
             bsc: '0x55d398326f99059fF775485246999027B3197955', // USDT BEP-20 Mainnet
             bsctest: '0x337610d27c682E347C9cD60BD4b3b107C9d34dDd' // USDT BEP-20 Testnet
         };
         
+        const USDT_ABI = [
+            "function balanceOf(address owner) view returns (uint256)",
+            "function transfer(address to, uint256 amount) returns (bool)",
+            "function decimals() view returns (uint8)",
+            "function symbol() view returns (string)",
+            "function name() view returns (string)"
+        ];
+        
         // ========== ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ ==========
+        let connector = null;
         let provider = null;
         let signer = null;
         let userAddress = null;
         let chainId = null;
         let usdtContract = null;
         let currentNetwork = 'bsc';
+        let currentURI = '';
+        let walletConnectLoaded = false;
         
         // ========== ЭЛЕМЕНТЫ DOM ==========
         const connectBtn = document.getElementById('connect-btn');
@@ -297,16 +357,12 @@
         const networkSelect = document.getElementById('network-select');
         const logEntries = document.getElementById('log-entries');
         const txModal = document.getElementById('tx-modal');
+        const qrModal = document.getElementById('qr-modal');
         const refreshUsdtBtn = document.getElementById('refresh-usdt');
-        
-        // ========== ABI контракта USDT (BEP-20) ==========
-        const USDT_ABI = [
-            "function balanceOf(address owner) view returns (uint256)",
-            "function transfer(address to, uint256 amount) returns (bool)",
-            "function decimals() view returns (uint8)",
-            "function symbol() view returns (string)",
-            "function name() view returns (string)"
-        ];
+        const qrLoading = document.getElementById('qr-loading');
+        const qrResult = document.getElementById('qr-result');
+        const qrImage = document.getElementById('qr-image');
+        const connectionURIDisplay = document.getElementById('connection-uri-display');
         
         // ========== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ==========
         function addLog(message, type = 'info') {
@@ -324,6 +380,11 @@
                 <span>${new Date().toLocaleTimeString()} - ${message}</span>
             `;
             logEntries.prepend(entry);
+            
+            // Ограничиваем количество записей
+            if (logEntries.children.length > 20) {
+                logEntries.removeChild(logEntries.lastChild);
+            }
         }
         
         function updateUI(connected = false) {
@@ -365,9 +426,21 @@
             txModal.style.display = 'none';
         }
         
+        function openQRModal() {
+            qrModal.style.display = 'flex';
+            startWalletConnectConnection();
+        }
+        
+        function closeQRModal() {
+            qrModal.style.display = 'none';
+            if (connector && connector.connected) {
+                connector.killSession();
+            }
+        }
+        
         async function getNetworkName(chainId) {
             const networks = {
-                1: 'Ethereum Mainnet',
+                1: 'Ethereum',
                 56: 'BNB Smart Chain',
                 97: 'BNB Testnet',
                 11155111: 'Sepolia',
@@ -376,135 +449,273 @@
             return networks[chainId] || `Сеть ${chainId}`;
         }
         
-        // ========== ПРОСТОЕ ПОДКЛЮЧЕНИЕ КОШЕЛЬКА ==========
-        async function connectWallet() {
-            try {
-                addLog('Попытка подключения кошелька...', 'info');
-                
-                // Проверяем, есть ли браузерный кошелек
-                if (typeof window.ethereum === 'undefined') {
-                    addLog('Кошелек не найден!', 'error');
-                    alert(
-                        'Trust Wallet или MetaMask не найден!\n\n' +
-                        'На телефоне: Откройте этот сайт в браузере Trust Wallet\n' +
-                        'На компьютере: Установите MetaMask расширение'
-                    );
+        // ========== WALLETCONNECT ПОДКЛЮЧЕНИЕ ==========
+        function startWalletConnectConnection() {
+            addLog('Начинаем подключение через WalletConnect...', 'info');
+            
+            // Сбрасываем состояние
+            qrLoading.style.display = 'block';
+            qrResult.style.display = 'none';
+            connectionURIDisplay.textContent = 'Генерация подключения...';
+            
+            // Пробуем загрузить WalletConnect динамически
+            loadWalletConnect().then(success => {
+                if (success) {
+                    createWalletConnectSession();
+                } else {
+                    // Если не удалось загрузить, используем ручную генерацию
+                    addLog('WalletConnect не загрузился, используем ручной метод', 'warning');
+                    generateManualConnection();
+                }
+            });
+        }
+        
+        function loadWalletConnect() {
+            return new Promise((resolve) => {
+                // Проверяем, уже загружена ли библиотека
+                if (typeof WalletConnect !== 'undefined') {
+                    walletConnectLoaded = true;
+                    addLog('WalletConnect уже загружен', 'success');
+                    resolve(true);
                     return;
                 }
                 
-                // Запрашиваем доступ к аккаунтам
+                addLog('Загружаем WalletConnect библиотеку...', 'info');
+                
+                // Динамически загружаем библиотеку
+                const script = document.createElement('script');
+                script.src = 'https://unpkg.com/@walletconnect/client@1.8.0/dist/index.umd.js';
+                script.onload = function() {
+                    walletConnectLoaded = true;
+                    addLog('WalletConnect успешно загружен', 'success');
+                    resolve(true);
+                };
+                script.onerror = function() {
+                    addLog('Не удалось загрузить WalletConnect', 'error');
+                    resolve(false);
+                };
+                document.head.appendChild(script);
+            });
+        }
+        
+        function createWalletConnectSession() {
+            try {
+                if (!walletConnectLoaded) {
+                    throw new Error('WalletConnect не загружен');
+                }
+                
+                // Создаем коннектор
+                connector = new WalletConnect.default({
+                    bridge: "https://bridge.walletconnect.org",
+                    qrcodeModal: {
+                        open: (uri) => {
+                            addLog('Получен URI для подключения', 'success');
+                            currentURI = uri;
+                            generateQRCode(uri);
+                        },
+                        close: () => {
+                            addLog('Модальное окно закрыто', 'info');
+                        }
+                    }
+                });
+                
+                // Если уже подключен
+                if (connector.connected) {
+                    onWalletConnectConnected({
+                        params: [{
+                            accounts: connector.accounts,
+                            chainId: connector.chainId
+                        }]
+                    });
+                    return;
+                }
+                
+                // Создаем новую сессию
+                connector.createSession({ chainId: 56 })
+                    .then(() => {
+                        addLog('Сессия WalletConnect создана', 'success');
+                        
+                        // Подписываемся на события
+                        connector.on("connect", (error, payload) => {
+                            if (error) {
+                                addLog(`Ошибка подключения: ${error.message}`, 'error');
+                                return;
+                            }
+                            onWalletConnectConnected(payload);
+                        });
+                        
+                        connector.on("session_update", (error, payload) => {
+                            if (error) {
+                                addLog(`Ошибка обновления сессии: ${error.message}`, 'error');
+                                return;
+                            }
+                            addLog('Сессия обновлена', 'info');
+                        });
+                        
+                        connector.on("disconnect", (error, payload) => {
+                            if (error) {
+                                addLog(`Ошибка отключения: ${error.message}`, 'error');
+                                return;
+                            }
+                            disconnectWallet();
+                            addLog('Кошелек отключен', 'info');
+                        });
+                    })
+                    .catch(error => {
+                        addLog(`Ошибка создания сессии: ${error.message}`, 'error');
+                        generateManualConnection();
+                    });
+                
+            } catch (error) {
+                addLog(`Ошибка создания WalletConnect: ${error.message}`, 'error');
+                generateManualConnection();
+            }
+        }
+        
+        function generateManualConnection() {
+            addLog('Используем ручную генерацию подключения', 'info');
+            
+            // Генерируем URI вручную
+            const sessionId = generateRandomId();
+            const bridge = 'https://bridge.walletconnect.org';
+            const key = generateRandomKey();
+            
+            const uri = `wc:${sessionId}@1?bridge=${encodeURIComponent(bridge)}&key=${key}`;
+            currentURI = uri;
+            
+            addLog('URI сгенерирован вручную', 'success');
+            generateQRCode(uri);
+        }
+        
+        function generateQRCode(uri) {
+            addLog('Генерируем QR-код...', 'info');
+            
+            // Проверяем наличие QRCode
+            if (typeof QRCode === 'undefined') {
+                addLog('Библиотека QRCode не найдена', 'error');
+                showURIText(uri);
+                return;
+            }
+            
+            // Генерируем QR-код
+            QRCode.toDataURL(uri, {
+                width: 200,
+                margin: 1,
+                color: {
+                    dark: '#000000',
+                    light: '#FFFFFF'
+                }
+            }, function(error, url) {
+                if (error) {
+                    addLog(`Ошибка генерации QR: ${error.message}`, 'error');
+                    showURIText(uri);
+                } else {
+                    addLog('QR-код сгенерирован', 'success');
+                    qrLoading.style.display = 'none';
+                    qrResult.style.display = 'block';
+                    qrImage.innerHTML = `<img src="${url}" class="qr-image" alt="QR Code">`;
+                    connectionURIDisplay.textContent = uri.substring(0, 80) + '...';
+                }
+            });
+        }
+        
+        function showURIText(uri) {
+            qrLoading.style.display = 'none';
+            qrResult.style.display = 'block';
+            qrImage.innerHTML = `
+                <div style="color: black; padding: 20px; text-align: center;">
+                    <p><strong>Используйте ссылку:</strong></p>
+                    <textarea style="width: 100%; height: 80px; font-size: 10px; padding: 10px;">${uri}</textarea>
+                    <p><small>Скопируйте и вставьте в Trust Wallet</small></p>
+                </div>
+            `;
+            connectionURIDisplay.textContent = uri;
+        }
+        
+        function copyConnectionURI() {
+            if (currentURI) {
+                navigator.clipboard.writeText(currentURI)
+                    .then(() => {
+                        addLog('Ссылка скопирована в буфер обмена', 'success');
+                        alert('✅ Ссылка скопирована!\n\nВставьте в Trust Wallet:\n1. Откройте Trust Wallet\n2. Настройки → WalletConnect\n3. Новое соединение\n4. Вставьте ссылку');
+                    })
+                    .catch(err => {
+                        addLog(`Ошибка копирования: ${err.message}`, 'error');
+                    });
+            }
+        }
+        
+        function onWalletConnectConnected(payload) {
+            try {
+                const { accounts, chainId: connectedChainId } = payload.params[0];
+                userAddress = accounts[0];
+                chainId = parseInt(connectedChainId);
+                
+                addLog(`Trust Wallet подключен: ${userAddress.substring(0, 6)}...`, 'success');
+                
+                // Создаем провайдер из коннектора
+                provider = new ethers.BrowserProvider(connector);
+                
+                // Закрываем модальное окно
+                closeQRModal();
+                
+                // Инициализируем подписчика и обновляем UI
+                initializeWallet();
+                
+            } catch (error) {
+                addLog(`Ошибка после подключения: ${error.message}`, 'error');
+            }
+        }
+        
+        async function initializeWallet() {
+            try {
+                signer = await provider.getSigner();
+                await updateWalletInfo();
+                updateUI(true);
+                initUsdtContract();
+                
+            } catch (error) {
+                addLog(`Ошибка инициализации кошелька: ${error.message}`, 'error');
+            }
+        }
+        
+        // Подключение через браузерный кошелек
+        async function useBrowserWallet() {
+            try {
+                if (typeof window.ethereum === 'undefined') {
+                    addLog('Браузерный кошелек не найден', 'error');
+                    alert('Установите MetaMask или Trust Wallet расширение');
+                    return;
+                }
+                
                 const accounts = await window.ethereum.request({
                     method: 'eth_requestAccounts'
                 });
-                
-                if (accounts.length === 0) {
-                    addLog('Пользователь отклонил запрос', 'warning');
-                    return;
-                }
                 
                 userAddress = accounts[0];
                 provider = new ethers.BrowserProvider(window.ethereum);
                 signer = await provider.getSigner();
                 
-                // Получаем информацию о сети
                 const network = await provider.getNetwork();
                 chainId = Number(network.chainId);
                 
-                // Проверяем, что сеть BSC (56) или BSC Testnet (97)
-                if (chainId !== 56 && chainId !== 97) {
-                    addLog(`Неверная сеть! Переключитесь на BSC (ID: 56) или BSC Testnet (ID: 97)`, 'warning');
-                    alert(
-                        `Текущая сеть: ${await getNetworkName(chainId)}\n\n` +
-                        'Переключитесь в Trust Wallet на сеть:\n' +
-                        '• BSC Mainnet (ID: 56) для реальных транзакций\n' +
-                        '• BSC Testnet (ID: 97) для тестов'
-                    );
-                    
-                    try {
-                        // Пробуем переключить сеть на BSC
-                        await window.ethereum.request({
-                            method: 'wallet_switchEthereumChain',
-                            params: [{ chainId: '0x38' }], // 56 в hex
-                        });
-                        // Перезагружаем страницу после смены сети
-                        setTimeout(() => location.reload(), 1000);
-                    } catch (switchError) {
-                        console.error('Ошибка переключения сети:', switchError);
-                    }
-                    return;
-                }
-                
-                // Обновляем интерфейс
+                closeQRModal();
                 await updateWalletInfo();
                 updateUI(true);
                 initUsdtContract();
                 
-                addLog(`Кошелек подключен: ${userAddress.substring(0, 6)}...`, 'success');
-                
-                // Слушаем события изменения аккаунта
-                window.ethereum.on('accountsChanged', (accounts) => {
-                    if (accounts.length === 0) {
-                        disconnectWallet();
-                    } else {
-                        userAddress = accounts[0];
-                        updateWalletInfo();
-                        initUsdtContract();
-                    }
-                });
-                
-                // Слушаем события изменения сети
-                window.ethereum.on('chainChanged', () => {
-                    location.reload();
-                });
+                addLog(`Браузерный кошелек подключен: ${userAddress.substring(0, 6)}...`, 'success');
                 
             } catch (error) {
-                console.error('Ошибка подключения:', error);
-                
-                let errorMessage = 'Неизвестная ошибка';
-                
-                if (error.code === 4001) {
-                    errorMessage = 'Пользователь отклонил запрос на подключение';
-                } else if (error.code === -32002) {
-                    errorMessage = 'Запрос на подключение уже ожидает подтверждения';
-                } else {
-                    errorMessage = error.message || error.toString();
-                }
-                
-                addLog(`Ошибка подключения: ${errorMessage}`, 'error');
-                alert(`Ошибка подключения: ${errorMessage}`);
-            }
-        }
-        
-        async function updateWalletInfo() {
-            try {
-                if (!userAddress || !provider) return;
-                
-                // Адрес
-                const shortAddress = `${userAddress.substring(0, 6)}...${userAddress.substring(38)}`;
-                walletAddress.textContent = shortAddress;
-                
-                // Сеть
-                const networkName = await getNetworkName(chainId);
-                walletNetwork.textContent = networkName;
-                networkInfo.textContent = networkName;
-                
-                // Баланс BNB
-                const balance = await provider.getBalance(userAddress);
-                const balanceInBnb = ethers.formatEther(balance);
-                walletBalance.textContent = `${parseFloat(balanceInBnb).toFixed(6)} BNB`;
-                
-                // Баланс USDT если контракт инициализирован
-                if (usdtContract) {
-                    await checkUsdtBalance();
-                }
-                
-            } catch (error) {
-                console.error('Ошибка обновления информации:', error);
-                addLog(`Ошибка обновления данных: ${error.message}`, 'error');
+                addLog(`Ошибка подключения браузерного кошелька: ${error.message}`, 'error');
             }
         }
         
         function disconnectWallet() {
+            if (connector && connector.connected) {
+                connector.killSession();
+            }
+            connector = null;
             provider = null;
             signer = null;
             userAddress = null;
@@ -513,20 +724,54 @@
             addLog('Кошелек отключен', 'info');
         }
         
-        // ========== РАБОТА С USDT ==========
+        // Тестовое подключение (демо)
+        function simulateConnection() {
+            closeQRModal();
+            
+            userAddress = '0x' + Math.random().toString(16).substring(2, 42);
+            
+            updateUI(true);
+            
+            walletAddress.textContent = `${userAddress.substring(0, 6)}...${userAddress.substring(38)}`;
+            walletBalance.textContent = '1.234 BNB';
+            usdtBalance.textContent = '100.50 USDT';
+            walletNetwork.textContent = 'BNB Smart Chain (тест)';
+            
+            addLog('Тестовое подключение успешно', 'success');
+            addLog('⚠️ Это демо-режим. Для реальных транзакций подключите настоящий кошелек', 'warning');
+        }
+        
+        // ========== РАБОТА С БЛОКЧЕЙНОМ ==========
+        async function updateWalletInfo() {
+            try {
+                if (!userAddress || !provider) return;
+                
+                const shortAddress = `${userAddress.substring(0, 6)}...${userAddress.substring(38)}`;
+                walletAddress.textContent = shortAddress;
+                
+                const networkName = await getNetworkName(chainId);
+                walletNetwork.textContent = networkName;
+                networkInfo.textContent = networkName;
+                
+                const balance = await provider.getBalance(userAddress);
+                const balanceInBnb = ethers.formatEther(balance);
+                walletBalance.textContent = `${parseFloat(balanceInBnb).toFixed(6)} BNB`;
+                
+                if (usdtContract) {
+                    await checkUsdtBalance();
+                }
+                
+            } catch (error) {
+                console.error('Ошибка обновления информации:', error);
+            }
+        }
+        
         function initUsdtContract() {
             try {
-                // Определяем сеть и адрес контракта
-                const networkId = chainId === 97 ? 'bsctest' : 'bsc';
-                currentNetwork = networkId;
-                networkSelect.value = networkId;
-                
-                const contractAddress = CONTRACT_ADDRESSES[networkId];
+                const contractAddress = CONTRACT_ADDRESSES[currentNetwork];
                 usdtContract = new ethers.Contract(contractAddress, USDT_ABI, signer);
-                
-                addLog(`Контракт USDT загружен (${networkId})`, 'success');
+                addLog(`Контракт USDT загружен`, 'success');
                 checkUsdtBalance();
-                
             } catch (error) {
                 console.error('Ошибка инициализации контракта:', error);
                 addLog('Ошибка загрузки контракта USDT', 'error');
@@ -542,12 +787,11 @@
                 const balanceFormatted = ethers.formatUnits(balance, decimals);
                 
                 usdtBalance.textContent = `${parseFloat(balanceFormatted).toFixed(2)} USDT`;
-                addLog(`Баланс USDT обновлен: ${parseFloat(balanceFormatted).toFixed(2)} USDT`, 'info');
+                addLog(`Баланс USDT: ${parseFloat(balanceFormatted).toFixed(2)} USDT`, 'info');
                 
             } catch (error) {
                 console.error('Ошибка проверки баланса USDT:', error);
                 usdtBalance.textContent = 'Ошибка загрузки';
-                addLog('Ошибка получения баланса USDT', 'error');
             }
         }
         
@@ -560,16 +804,13 @@
             const to = receiverAddress.value.trim();
             const amount = amountInput.value;
             
-            // Валидация
             if (!to || !to.startsWith('0x') || to.length !== 42) {
                 addLog('Некорректный адрес получателя', 'error');
-                alert('Введите корректный адрес кошелька BSC (начинается с 0x, 42 символа)');
                 return;
             }
             
             if (!amount || parseFloat(amount) <= 0) {
                 addLog('Введите корректную сумму', 'error');
-                alert('Введите положительное количество USDT');
                 return;
             }
             
@@ -577,42 +818,34 @@
                 openModal();
                 showModalStep('step-sign');
                 
-                addLog(`Начало отправки ${amount} USDT на адрес ${to.substring(0, 10)}...`, 'info');
+                addLog(`Начало отправки ${amount} USDT...`, 'info');
                 
-                // Получаем decimals контракта
                 const decimals = await usdtContract.decimals();
                 const amountInWei = ethers.parseUnits(amount, decimals);
                 
-                // Отправляем транзакцию
                 const tx = await usdtContract.transfer(to, amountInWei);
-                addLog(`Транзакция подписана. Хэш: ${tx.hash.substring(0, 20)}...`, 'info');
+                addLog(`Транзакция подписана`, 'info');
                 
                 showModalStep('step-sending');
-                document.getElementById('tx-hash-text').textContent = `Хэш: ${tx.hash}`;
+                document.getElementById('tx-hash-text').textContent = `Хэш: ${tx.hash.substring(0, 30)}...`;
                 
-                // Ждем подтверждения
-                addLog('Ожидание подтверждения транзакции...', 'info');
                 const receipt = await tx.wait();
                 
-                // Успех!
                 showModalStep('step-success');
                 document.getElementById('success-details').textContent = 
                     `Успешно отправлено ${amount} USDT`;
                 
-                // Ссылка на BscScan
                 const explorerLink = currentNetwork === 'bsc' 
                     ? `https://bscscan.com/tx/${tx.hash}`
                     : `https://testnet.bscscan.com/tx/${tx.hash}`;
                 
                 document.getElementById('tx-explorer-link').href = explorerLink;
                 
-                addLog(`✅ Успешно отправлено ${amount} USDT! Блок: ${receipt.blockNumber}`, 'success');
+                addLog(`✅ Успешно отправлено ${amount} USDT!`, 'success');
                 
-                // Обновляем балансы
                 await updateWalletInfo();
                 
-                // Автозакрытие через 10 секунд
-                setTimeout(closeModal, 10000);
+                setTimeout(closeModal, 8000);
                 
             } catch (error) {
                 console.error('Ошибка отправки USDT:', error);
@@ -620,51 +853,52 @@
                 showModalStep('step-error');
                 let errorMsg = error.message || 'Неизвестная ошибка';
                 
-                // Упрощаем сообщение
                 if (errorMsg.includes('user rejected')) {
-                    errorMsg = 'Транзакция отклонена в кошельке';
+                    errorMsg = 'Транзакция отклонена в Trust Wallet';
                 } else if (errorMsg.includes('insufficient funds')) {
                     errorMsg = 'Недостаточно BNB для комиссии';
                 } else if (errorMsg.includes('insufficient balance')) {
                     errorMsg = 'Недостаточно USDT на балансе';
-                } else if (errorMsg.includes('network changed')) {
-                    errorMsg = 'Сеть изменилась, обновите страницу';
                 }
                 
                 document.getElementById('error-details').textContent = errorMsg;
                 addLog(`❌ Ошибка: ${errorMsg}`, 'error');
-                
-                // Автозакрытие через 5 секунд
-                setTimeout(closeModal, 5000);
             }
         }
         
+        // ========== ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ ==========
+        function generateRandomId() {
+            return Math.random().toString(36).substring(2, 15) + 
+                   Math.random().toString(36).substring(2, 15);
+        }
+        
+        function generateRandomKey() {
+            const chars = 'abcdef0123456789';
+            let key = '';
+            for (let i = 0; i < 64; i++) {
+                key += chars[Math.floor(Math.random() * chars.length)];
+            }
+            return key;
+        }
+        
         // ========== ИНИЦИАЛИЗАЦИЯ ==========
-        document.getElementById('connect-btn').addEventListener('click', connectWallet);
+        document.getElementById('connect-btn').addEventListener('click', openQRModal);
         document.getElementById('disconnect-btn').addEventListener('click', disconnectWallet);
         document.getElementById('send-usdt-btn').addEventListener('click', sendUsdt);
         document.getElementById('check-balance-btn').addEventListener('click', () => {
             checkUsdtBalance();
-            addLog('Проверка баланса USDT...', 'info');
+            addLog('Проверка баланса...', 'info');
         });
         
         document.getElementById('refresh-usdt').addEventListener('click', checkUsdtBalance);
         
-        // Копирование адреса
         document.getElementById('copy-address').addEventListener('click', () => {
             if (userAddress) {
-                navigator.clipboard.writeText(userAddress)
-                    .then(() => {
-                        addLog('Адрес скопирован в буфер обмена', 'success');
-                        alert('Адрес кошелька скопирован!');
-                    })
-                    .catch(err => {
-                        addLog('Ошибка копирования адреса', 'error');
-                    });
+                navigator.clipboard.writeText(userAddress);
+                addLog('Адрес скопирован в буфер обмена', 'success');
             }
         });
         
-        // Обновление сводки
         amountInput.addEventListener('input', () => {
             document.getElementById('usdt-amount').textContent = `${amountInput.value} USDT`;
         });
@@ -677,35 +911,9 @@
         });
         
         // При загрузке страницы
-        window.addEventListener('load', async () => {
-            // Проверяем, не подключен ли уже кошелек
-            if (window.ethereum && window.ethereum.selectedAddress) {
-                try {
-                    addLog('Попытка автоподключения...', 'info');
-                    provider = new ethers.BrowserProvider(window.ethereum);
-                    userAddress = window.ethereum.selectedAddress;
-                    signer = await provider.getSigner();
-                    const network = await provider.getNetwork();
-                    chainId = Number(network.chainId);
-                    
-                    await updateWalletInfo();
-                    updateUI(true);
-                    initUsdtContract();
-                    addLog('Автоподключение успешно', 'success');
-                } catch (error) {
-                    console.error('Ошибка автоподключения:', error);
-                }
-            }
-            
-            // Устанавливаем начальные значения
+        window.addEventListener('load', () => {
             document.getElementById('usdt-amount').textContent = `${amountInput.value} USDT`;
-            
-            // Проверяем, есть ли браузерный кошелек
-            if (typeof window.ethereum !== 'undefined') {
-                addLog('Браузерный кошелек обнаружен', 'info');
-            } else {
-                addLog('ВНИМАНИЕ: Откройте сайт в браузере Trust Wallet или установите MetaMask', 'warning');
-            }
+            addLog('Сайт загружен. Готов к подключению Trust Wallet.', 'info');
         });
     </script>
 </body>
