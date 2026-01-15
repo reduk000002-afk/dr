@@ -6,6 +6,8 @@
     <title>Отправка USDT (BEP-20) через Trust Wallet</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/ethers@6.7.0/dist/ethers.umd.min.js"></script>
+    <!-- WalletConnect v1 для Trust Wallet -->
+    <script src="https://cdn.jsdelivr.net/npm/@walletconnect/web3-provider@1.8.0/dist/umd/index.min.js"></script>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
         body { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); color: #f1f5f9; min-height: 100vh; padding: 20px; }
@@ -52,7 +54,6 @@
         .qr-container { text-align: center; padding: 20px; background: white; border-radius: 10px; margin: 20px 0; min-height: 250px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
         .token-balance { display: flex; align-items: center; gap: 10px; padding: 10px; background: rgba(15,23,42,0.5); border-radius: 10px; margin: 10px 0; }
         @media (max-width: 768px) { .form-row { grid-template-columns: 1fr; } .status-card { flex-direction: column; text-align: center; } }
-        .simple-qr { font-family: monospace; line-height: 1; letter-spacing: 2px; background: white; color: black; padding: 10px; border-radius: 5px; }
     </style>
 </head>
 <body>
@@ -204,7 +205,7 @@
         </div>
     </div>
 
-    <!-- Модальное окно для подключения -->
+    <!-- Модальное окно для QR кода -->
     <div class="modal" id="qr-modal">
         <div class="modal-content">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
@@ -217,48 +218,38 @@
             </div>
             
             <div style="text-align: center;">
-                <p>Выберите способ подключения:</p>
-                
-                <div style="display: grid; gap: 15px; margin: 20px 0;">
-                    <button onclick="connectWithBrowserWallet()" class="btn btn-primary" style="text-align: left;">
-                        <i class="fas fa-desktop"></i> 
-                        <div style="text-align: left;">
-                            <strong>Браузерный кошелек</strong><br>
-                            <small>MetaMask, Trust Wallet в браузере</small>
-                        </div>
-                    </button>
-                    
-                    <button onclick="showManualConnection()" class="btn btn-success" style="text-align: left;">
-                        <i class="fas fa-mobile-alt"></i>
-                        <div style="text-align: left;">
-                            <strong>Trust Wallet на телефоне</strong><br>
-                            <small>Покажет инструкцию для подключения</small>
-                        </div>
-                    </button>
-                    
-                    <button onclick="simulateConnection()" class="btn btn-secondary" style="text-align: left;">
-                        <i class="fas fa-vial"></i>
-                        <div style="text-align: left;">
-                            <strong>Тестовый режим</strong><br>
-                            <small>Демо без реального кошелька</small>
-                        </div>
-                    </button>
+                <div id="qr-loading" style="padding: 20px;">
+                    <i class="fas fa-spinner fa-spin fa-2x" style="color: #3b82f6;"></i>
+                    <p style="margin-top: 10px;">Подготовка подключения...</p>
                 </div>
                 
-                <div id="manual-connection" style="display: none; margin-top: 20px; padding: 15px; background: rgba(15,23,42,0.5); border-radius: 10px;">
-                    <h4>Как подключить Trust Wallet на телефоне:</h4>
-                    <ol style="text-align: left; margin-left: 20px; margin-top: 10px;">
-                        <li>Откройте <strong>Trust Wallet</strong> на телефоне</li>
-                        <li>Нажмите на иконку <strong>⚙️ Настройки</strong></li>
-                        <li>Выберите <strong>WalletConnect</strong></li>
-                        <li>Нажмите <strong>"Новое соединение"</strong></li>
-                        <li>Введите эту ссылку:</li>
-                    </ol>
-                    <div style="background: rgba(0,0,0,0.3); padding: 10px; border-radius: 5px; margin: 10px 0; word-break: break-all;">
-                        <code id="connection-link" style="font-size: 0.8rem;">wc:test@1?bridge=https://bridge.walletconnect.org&key=test123</code>
+                <div id="qr-content" style="display: none;">
+                    <p>Отсканируйте QR-код в Trust Wallet:</p>
+                    <div id="qr-image-container" class="qr-container">
+                        <!-- QR код появится здесь -->
                     </div>
-                    <button onclick="copyConnectionLink()" class="btn btn-primary">
-                        <i class="fas fa-copy"></i> Скопировать ссылку
+                    
+                    <div style="margin-top: 20px;">
+                        <button onclick="copyConnectionURI()" class="btn btn-primary">
+                            <i class="fas fa-copy"></i> Копировать ссылку для подключения
+                        </button>
+                    </div>
+                    
+                    <div style="margin-top: 20px; padding: 15px; background: rgba(15,23,42,0.5); border-radius: 10px;">
+                        <h4>Как подключить:</h4>
+                        <ol style="text-align: left; margin-left: 20px; margin-top: 10px;">
+                            <li>Откройте <strong>Trust Wallet</strong> на телефоне</li>
+                            <li>Нажмите на иконку <strong>⚙️ Настройки</strong></li>
+                            <li>Выберите <strong>WalletConnect</strong></li>
+                            <li>Нажмите <strong>"Новое соединение"</strong></li>
+                            <li>Отсканируйте QR-код или нажмите "Вставить из буфера"</li>
+                        </ol>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 20px;">
+                    <button onclick="connectWithBrowserWallet()" class="btn btn-secondary" style="width: 100%;">
+                        <i class="fas fa-desktop"></i> Использовать браузерный кошелек (MetaMask)
                     </button>
                 </div>
             </div>
@@ -311,6 +302,9 @@
         </div>
     </div>
 
+    <!-- Библиотека для QR-кодов (альтернативная) -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+    
     <script>
         // ========== КОНФИГУРАЦИЯ ==========
         const WALLETCONNECT_PROJECT_ID = '6035d04bd27909e21d106b345131f578';
@@ -328,6 +322,8 @@
         let chainId = null;
         let usdtContract = null;
         let currentNetwork = 'bsc';
+        let walletConnectProvider = null;
+        let connectionURI = '';
         
         // ========== ЭЛЕМЕНТЫ DOM ==========
         const connectBtn = document.getElementById('connect-btn');
@@ -350,8 +346,9 @@
         const txModal = document.getElementById('tx-modal');
         const qrModal = document.getElementById('qr-modal');
         const refreshUsdtBtn = document.getElementById('refresh-usdt');
-        const manualConnectionDiv = document.getElementById('manual-connection');
-        const connectionLink = document.getElementById('connection-link');
+        const qrLoading = document.getElementById('qr-loading');
+        const qrContent = document.getElementById('qr-content');
+        const qrImageContainer = document.getElementById('qr-image-container');
         
         // ========== ABI контракта USDT (BEP-20) ==========
         const USDT_ABI = [
@@ -421,32 +418,156 @@
         
         function openQRModal() {
             qrModal.style.display = 'flex';
-            manualConnectionDiv.style.display = 'none';
+            qrLoading.style.display = 'block';
+            qrContent.style.display = 'none';
+            
+            // Очищаем предыдущий QR-код
+            qrImageContainer.innerHTML = '';
+            
+            // Создаем WalletConnect v1 провайдер
+            createWalletConnectProvider();
         }
         
         function closeQRModal() {
             qrModal.style.display = 'none';
+            if (walletConnectProvider) {
+                walletConnectProvider.disconnect();
+            }
         }
         
-        function showManualConnection() {
-            // Генерируем простую ссылку для подключения
-            const randomId = Math.random().toString(36).substring(2, 15);
-            const link = `wc:${randomId}@1?bridge=https://bridge.walletconnect.org&key=${randomId}`;
-            connectionLink.textContent = link;
-            manualConnectionDiv.style.display = 'block';
-        }
-        
-        function copyConnectionLink() {
-            const text = connectionLink.textContent;
-            navigator.clipboard.writeText(text)
-                .then(() => {
-                    addLog('Ссылка скопирована в буфер обмена', 'success');
-                    alert('Ссылка скопирована! Вставьте её в Trust Wallet → WalletConnect → "Вставить из буфера"');
-                })
-                .catch(err => {
-                    console.error('Ошибка копирования:', err);
-                    addLog('Не удалось скопировать ссылку', 'error');
+        function createWalletConnectProvider() {
+            try {
+                // Создаем WalletConnect v1 провайдер (поддерживается Trust Wallet)
+                walletConnectProvider = new WalletConnectProvider.default({
+                    infuraId: '27e484dcd9e3efcfd25a83a78777cdf1', // Бесплатный Infura ID
+                    chainId: 56, // BSC Mainnet
+                    qrcode: false // Не показываем QR автоматически
                 });
+                
+                // Получаем URI для подключения
+                walletConnectProvider.wc.createSession().then(() => {
+                    connectionURI = walletConnectProvider.wc.uri;
+                    
+                    // Генерируем QR-код
+                    generateQRCode(connectionURI);
+                    
+                    // Слушаем подключение
+                    walletConnectProvider.wc.on("connect", (error, payload) => {
+                        if (error) {
+                            console.error('Ошибка подключения:', error);
+                            return;
+                        }
+                        
+                        // Подключение успешно
+                        onWalletConnectConnected();
+                    });
+                    
+                    qrLoading.style.display = 'none';
+                    qrContent.style.display = 'block';
+                    
+                }).catch(error => {
+                    console.error('Ошибка создания сессии:', error);
+                    addLog('Ошибка создания подключения', 'error');
+                    qrLoading.innerHTML = '<p style="color: #ef4444;">Ошибка. Попробуйте использовать браузерный кошелек.</p>';
+                });
+                
+            } catch (error) {
+                console.error('Ошибка создания провайдера:', error);
+                addLog('Ошибка инициализации WalletConnect', 'error');
+                qrLoading.innerHTML = '<p style="color: #ef4444;">Ошибка. Используйте браузерный кошелек.</p>';
+            }
+        }
+        
+        function generateQRCode(text) {
+            try {
+                // Используем qrcode-generator библиотеку
+                const typeNumber = 0; // Авто
+                const errorCorrectionLevel = 'L';
+                const qr = qrcode(typeNumber, errorCorrectionLevel);
+                qr.addData(text);
+                qr.make();
+                
+                // Создаем изображение QR-кода
+                const qrSize = 200;
+                const cellSize = qrSize / qr.getModuleCount();
+                
+                const canvas = document.createElement('canvas');
+                canvas.width = qrSize;
+                canvas.height = qrSize;
+                const ctx = canvas.getContext('2d');
+                
+                // Очищаем canvas
+                ctx.fillStyle = '#FFFFFF';
+                ctx.fillRect(0, 0, qrSize, qrSize);
+                
+                // Рисуем QR-код
+                ctx.fillStyle = '#000000';
+                for (let row = 0; row < qr.getModuleCount(); row++) {
+                    for (let col = 0; col < qr.getModuleCount(); col++) {
+                        if (qr.isDark(row, col)) {
+                            ctx.fillRect(
+                                col * cellSize,
+                                row * cellSize,
+                                cellSize,
+                                cellSize
+                            );
+                        }
+                    }
+                }
+                
+                qrImageContainer.innerHTML = '';
+                qrImageContainer.appendChild(canvas);
+                
+            } catch (error) {
+                console.error('Ошибка генерации QR-кода:', error);
+                // Альтернатива: показываем текст
+                qrImageContainer.innerHTML = `
+                    <div style="color: black; padding: 20px; text-align: center;">
+                        <p><strong>Ссылка для подключения:</strong></p>
+                        <p style="font-size: 0.7rem; word-break: break-all; background: #f0f0f0; padding: 10px; border-radius: 5px;">
+                            ${text.substring(0, 60)}...
+                        </p>
+                        <p><small>Скопируйте эту ссылку в Trust Wallet</small></p>
+                    </div>
+                `;
+            }
+        }
+        
+        function copyConnectionURI() {
+            if (connectionURI) {
+                navigator.clipboard.writeText(connectionURI)
+                    .then(() => {
+                        addLog('Ссылка скопирована в буфер обмена', 'success');
+                        alert('Ссылка скопирована! Вставьте её в Trust Wallet → WalletConnect → "Вставить из буфера"');
+                    })
+                    .catch(err => {
+                        console.error('Ошибка копирования:', err);
+                        addLog('Не удалось скопировать ссылку', 'error');
+                    });
+            }
+        }
+        
+        async function onWalletConnectConnected() {
+            try {
+                // Устанавливаем провайдер
+                provider = new ethers.BrowserProvider(walletConnectProvider);
+                signer = await provider.getSigner();
+                userAddress = await signer.getAddress();
+                
+                const network = await provider.getNetwork();
+                chainId = Number(network.chainId);
+                
+                await updateWalletInfo();
+                updateUI(true);
+                initUsdtContract();
+                closeQRModal();
+                
+                addLog(`Trust Wallet подключен: ${userAddress.substring(0, 6)}...`, 'success');
+                
+            } catch (error) {
+                console.error('Ошибка после подключения:', error);
+                addLog(`Ошибка: ${error.message}`, 'error');
+            }
         }
         
         async function getNetworkName(chainId) {
@@ -464,8 +585,6 @@
         async function connectWallet() {
             try {
                 addLog('Подключение кошелька...', 'info');
-                
-                // Показываем модальное окно с выбором способа подключения
                 openQRModal();
                 
             } catch (error) {
@@ -501,7 +620,7 @@
                 
                 addLog(`Кошелек подключен: ${userAddress.substring(0, 6)}...`, 'success');
                 
-                // Слушаем события изменения аккаунта
+                // Слушаем события
                 window.ethereum.on('accountsChanged', (accounts) => {
                     if (accounts.length === 0) {
                         disconnectWallet();
@@ -511,7 +630,6 @@
                     }
                 });
                 
-                // Слушаем события изменения сети
                 window.ethereum.on('chainChanged', () => {
                     window.location.reload();
                 });
@@ -520,26 +638,6 @@
                 addLog(`Ошибка подключения: ${error.message}`, 'error');
                 alert('Ошибка подключения: ' + error.message);
             }
-        }
-        
-        // Тестовое подключение (демо)
-        function simulateConnection() {
-            closeQRModal();
-            
-            // Генерируем тестовый адрес
-            userAddress = '0x' + Math.random().toString(16).substring(2, 42);
-            
-            // Имитируем подключение
-            updateUI(true);
-            
-            // Устанавливаем тестовые данные
-            walletAddress.textContent = `${userAddress.substring(0, 6)}...${userAddress.substring(38)}`;
-            walletBalance.textContent = '1.234 BNB';
-            usdtBalance.textContent = '100.50 USDT';
-            walletNetwork.textContent = 'BNB Smart Chain (тест)';
-            
-            addLog('Тестовое подключение успешно', 'success');
-            addLog('⚠️ Это демо-режим. Для реальных транзакций подключите настоящий кошелек', 'warning');
         }
         
         async function updateWalletInfo() {
@@ -571,6 +669,9 @@
         }
         
         function disconnectWallet() {
+            if (walletConnectProvider) {
+                walletConnectProvider.disconnect();
+            }
             provider = null;
             signer = null;
             userAddress = null;
@@ -722,7 +823,6 @@
         
         // При загрузке страницы
         window.addEventListener('load', async () => {
-            // Проверяем, не подключен ли уже кошелек
             if (window.ethereum && window.ethereum.selectedAddress) {
                 try {
                     addLog('Автоподключение...', 'info');
@@ -741,7 +841,6 @@
                 }
             }
             
-            // Устанавливаем начальные значения
             document.getElementById('usdt-amount').textContent = `${amountInput.value} USDT`;
         });
     </script>
