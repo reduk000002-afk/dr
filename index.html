@@ -2,137 +2,169 @@
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
-<title>USDT BEP20 — Trust Wallet</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>USDT BEP20 Transfer</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <script src="https://cdn.jsdelivr.net/npm/ethers@6.7.0/dist/ethers.umd.min.js"></script>
 <script src="https://unpkg.com/@walletconnect/sign-client/dist/index.umd.js"></script>
 
 <style>
 body {
-  background:#0f0f0f;
+  background:#0e0e0e;
   color:#fff;
-  font-family:Arial, sans-serif;
-  max-width:480px;
-  margin:30px auto;
+  font-family:Arial;
+  max-width:500px;
+  margin:40px auto;
   padding:20px;
 }
-h2 { text-align:center; }
 button {
   width:100%;
   padding:14px;
-  margin-top:10px;
-  border:none;
+  margin:10px 0;
   border-radius:10px;
+  border:none;
   font-size:16px;
-  background:#26a17b;
-  color:#fff;
 }
 input {
   width:100%;
   padding:12px;
-  margin-top:8px;
+  margin:6px 0;
   border-radius:8px;
   border:1px solid #333;
   background:#1a1a1a;
   color:#fff;
 }
+.primary { background:#26a17b; color:#fff; }
 .box {
   background:#1c1c1c;
   padding:15px;
   border-radius:12px;
   margin-top:20px;
 }
-.small { font-size:13px; opacity:0.8; }
 </style>
 </head>
 
 <body>
 
-<h2>💲 USDT (BEP-20)</h2>
+<h2>💲 USDT BEP-20 (Trust Wallet)</h2>
 
-<button onclick="connectWallet()">🔗 Подключить Trust Wallet</button>
+<button class="primary" onclick="connectDapp()">📱 Trust Wallet (DApps)</button>
+<button class="primary" onclick="connectWalletConnect()">🔗 WalletConnect</button>
 
-<div id="walletBox" class="box" style="display:none;">
+<div class="box" id="wallet" style="display:none;">
   <p><b>Адрес:</b><br><span id="addr"></span></p>
-  <p><b>Баланс USDT:</b> <span id="balance">0</span></p>
+  <p><b>USDT баланс:</b> <span id="usdtBal"></span></p>
 
   <hr>
 
   <input id="to" placeholder="Адрес получателя 0x..." />
   <input id="amount" type="number" step="0.01" placeholder="Сумма USDT" />
 
-  <button onclick="sendUSDT()">📤 Отправить USDT</button>
+  <button class="primary" onclick="sendUSDT()">📤 Отправить USDT</button>
 </div>
 
 <script>
-/* ===== НАСТРОЙКИ ===== */
 const PROJECT_ID = "6035d04bd27909e21d106b345131f578";
-const CHAIN_ID = "eip155:56"; // BNB Smart Chain
+
+// USDT BEP-20 (BNB Smart Chain)
 const USDT_ADDRESS = "0x55d398326f99059fF775485246999027B3197955";
+const USDT_DECIMALS = 18;
 
 const USDT_ABI = [
   "function balanceOf(address) view returns (uint256)",
   "function transfer(address,uint256) returns (bool)"
 ];
 
-let signClient, session, provider, signer, userAddress, usdt;
+let provider, signer, userAddress, usdt;
 
-/* ===== CONNECT ===== */
-async function connectWallet() {
-  signClient = await window.SignClient.init({
+/* ===== Trust Wallet DApps (НЕ ТРОГАЕМ) ===== */
+async function connectDapp() {
+  if (!window.ethereum) {
+    alert("Открой сайт через Trust Wallet → DApps");
+    return;
+  }
+
+  provider = new ethers.BrowserProvider(window.ethereum);
+  await provider.send("eth_requestAccounts", []);
+  signer = await provider.getSigner();
+  userAddress = await signer.getAddress();
+
+  await ensureBSC();
+  initUSDT();
+}
+
+/* ===== WalletConnect (НЕ ТРОГАЕМ) ===== */
+async function connectWalletConnect() {
+  if (location.protocol !== "https:" && location.hostname !== "localhost") {
+    alert("WalletConnect требует https");
+    return;
+  }
+
+  const signClient = await window.SignClient.init({
     projectId: PROJECT_ID,
     metadata: {
-      name: "USDT Sender",
+      name: "USDT Transfer",
       description: "Send USDT BEP20",
       url: window.location.origin,
       icons: []
     }
   });
 
-  const res = await signClient.connect({
+  const { uri, approval } = await signClient.connect({
     requiredNamespaces: {
       eip155: {
-        methods: ["eth_sendTransaction", "eth_sign", "personal_sign"],
-        chains: [CHAIN_ID],
+        methods: ["eth_sendTransaction"],
+        chains: ["eip155:56"],
         events: []
       }
     }
   });
 
   window.open(
-    "https://link.trustwallet.com/wc?uri=" + encodeURIComponent(res.uri),
+    "https://link.trustwallet.com/wc?uri=" + encodeURIComponent(uri),
     "_blank"
   );
 
-  session = await res.approval();
-
+  const session = await approval();
   userAddress = session.namespaces.eip155.accounts[0].split(":")[2];
 
   provider = new ethers.BrowserProvider({
     request: async ({ method, params }) => {
       return signClient.request({
         topic: session.topic,
-        chainId: CHAIN_ID,
+        chainId: "eip155:56",
         request: { method, params }
       });
     }
   });
 
   signer = await provider.getSigner();
+  initUSDT();
+}
+
+/* ===== ENSURE BSC ===== */
+async function ensureBSC() {
+  const network = await provider.getNetwork();
+  if (network.chainId !== 56n) {
+    alert("Переключите сеть на BNB Smart Chain");
+    throw new Error("Wrong network");
+  }
+}
+
+/* ===== INIT ===== */
+async function initUSDT() {
   usdt = new ethers.Contract(USDT_ADDRESS, USDT_ABI, signer);
 
-  document.getElementById("walletBox").style.display = "block";
+  document.getElementById("wallet").style.display = "block";
   document.getElementById("addr").textContent = userAddress;
 
   updateBalance();
 }
 
-/* ===== BALANCE ===== */
 async function updateBalance() {
   const bal = await usdt.balanceOf(userAddress);
-  document.getElementById("balance").textContent =
-    ethers.formatUnits(bal, 18) + " USDT";
+  document.getElementById("usdtBal").textContent =
+    ethers.formatUnits(bal, USDT_DECIMALS) + " USDT";
 }
 
 /* ===== SEND USDT ===== */
@@ -151,17 +183,22 @@ async function sendUSDT() {
   }
 
   try {
-    const value = ethers.parseUnits(amount, 18);
+    const value = ethers.parseUnits(amount, USDT_DECIMALS);
+    const balance = await usdt.balanceOf(userAddress);
+
+    if (balance < value) {
+      alert("Недостаточно USDT");
+      return;
+    }
 
     const tx = await usdt.transfer(to, value, {
       gasLimit: 100000n
     });
 
     alert("Подтвердите транзакцию в Trust Wallet");
-
     await tx.wait();
 
-    alert("✅ USDT отправлены");
+    alert("✅ USDT успешно отправлены");
     updateBalance();
 
   } catch (e) {
@@ -169,7 +206,7 @@ async function sendUSDT() {
     if (e.code === 4001) {
       alert("Транзакция отклонена");
     } else {
-      alert("Ошибка: " + e.message);
+      alert("Ошибка: " + (e.message || "unknown"));
     }
   }
 }
