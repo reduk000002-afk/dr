@@ -1,216 +1,1169 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-<meta charset="UTF-8">
-<title>USDT BEP20 Transfer</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<script src="https://cdn.jsdelivr.net/npm/ethers@6.7.0/dist/ethers.umd.min.js"></script>
-<script src="https://unpkg.com/@walletconnect/sign-client/dist/index.umd.js"></script>
-
-<style>
-body {
-  background:#0e0e0e;
-  color:#fff;
-  font-family:Arial;
-  max-width:500px;
-  margin:40px auto;
-  padding:20px;
-}
-button {
-  width:100%;
-  padding:14px;
-  margin:10px 0;
-  border-radius:10px;
-  border:none;
-  font-size:16px;
-}
-input {
-  width:100%;
-  padding:12px;
-  margin:6px 0;
-  border-radius:8px;
-  border:1px solid #333;
-  background:#1a1a1a;
-  color:#fff;
-}
-.primary { background:#26a17b; color:#fff; }
-.box {
-  background:#1c1c1c;
-  padding:15px;
-  border-radius:12px;
-  margin-top:20px;
-}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тестовое задание | Оценка знаний</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+        
+        body {
+            background: #0b0e11;
+            color: #eaecef;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(240, 185, 11, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(240, 185, 11, 0.03) 0%, transparent 50%),
+                radial-gradient(circle at 40% 80%, rgba(240, 185, 11, 0.04) 0%, transparent 50%);
+            z-index: -1;
+        }
+        
+        .container {
+            background: rgba(18, 22, 28, 0.95);
+            border: 1px solid #2b3139;
+            border-radius: 16px;
+            width: 100%;
+            max-width: 520px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(10px);
+            position: relative;
+        }
+        
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #f0b90b, #f8d12f, #f0b90b);
+            border-radius: 16px 16px 0 0;
+        }
+        
+        .screen {
+            padding: 40px 35px;
+            display: none;
+        }
+        
+        .screen.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        h1 {
+            color: #f0b90b;
+            margin-bottom: 30px;
+            text-align: center;
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            background: linear-gradient(135deg, #f0b90b 0%, #f8d12f 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        h2 {
+            color: #f0b90b;
+            margin-bottom: 25px;
+            text-align: center;
+            font-size: 26px;
+            font-weight: 600;
+        }
+        
+        .warning {
+            background: rgba(240, 185, 11, 0.08);
+            border: 1px solid rgba(240, 185, 11, 0.3);
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 35px;
+            text-align: center;
+            color: #b7bdc6;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .warning::before {
+            content: '⚠️';
+            font-size: 24px;
+            display: block;
+            margin-bottom: 15px;
+        }
+        
+        .warning h3 {
+            color: #f0b90b;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+        
+        .warning p {
+            margin-bottom: 10px;
+            line-height: 1.6;
+            font-size: 16px;
+        }
+        
+        .warning strong {
+            color: #f0b90b;
+            font-weight: 600;
+        }
+        
+        .countdown {
+            font-size: 80px;
+            font-weight: 700;
+            text-align: center;
+            color: #f0b90b;
+            margin: 35px 0;
+            text-shadow: 0 0 20px rgba(240, 185, 11, 0.3);
+            font-family: 'Courier New', monospace;
+            letter-spacing: 5px;
+        }
+        
+        .question {
+            margin-bottom: 35px;
+        }
+        
+        .question-number {
+            background: rgba(240, 185, 11, 0.1);
+            color: #f0b90b;
+            padding: 10px 22px;
+            border-radius: 30px;
+            display: inline-block;
+            margin-bottom: 20px;
+            font-weight: 600;
+            font-size: 14px;
+            border: 1px solid rgba(240, 185, 11, 0.2);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .question-text {
+            font-size: 18px;
+            margin-bottom: 25px;
+            color: #eaecef;
+            line-height: 1.5;
+            font-weight: 500;
+        }
+        
+        .options {
+            display: grid;
+            gap: 12px;
+            margin-bottom: 35px;
+        }
+        
+        .option {
+            background: rgba(43, 49, 57, 0.8);
+            border: 1px solid #2b3139;
+            border-radius: 12px;
+            padding: 18px;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 16px;
+            text-align: left;
+            color: #b7bdc6;
+            font-weight: 500;
+            position: relative;
+            overflow: hidden;
+            line-height: 1.5;
+        }
+        
+        .option:hover {
+            background: rgba(59, 66, 76, 0.8);
+            border-color: #f0b90b;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(240, 185, 11, 0.1);
+        }
+        
+        .option.selected {
+            background: rgba(240, 185, 11, 0.12);
+            color: #f0b90b;
+            border-color: #f0b90b;
+            box-shadow: 0 0 0 1px #f0b90b, 0 8px 20px rgba(240, 185, 11, 0.15);
+        }
+        
+        .option.selected::after {
+            content: '✓';
+            position: absolute;
+            right: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #f0b90b;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        
+        .timer {
+            text-align: center;
+            font-size: 28px;
+            font-weight: 700;
+            color: #f0b90b;
+            margin: 25px 0;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 2px;
+            text-shadow: 0 0 15px rgba(240, 185, 11, 0.3);
+        }
+        
+        .timer.warning {
+            color: #ff6b6b;
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #f0b90b 0%, #f8d12f 100%);
+            color: #0b0e11;
+            border: none;
+            padding: 18px 40px;
+            font-size: 17px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            width: 100%;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 25px rgba(240, 185, 11, 0.25);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+        }
+        
+        .btn:disabled {
+            background: #2b3139;
+            color: #5e6673;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        input {
+            width: 100%;
+            padding: 18px;
+            font-size: 17px;
+            background: rgba(43, 49, 57, 0.8);
+            border: 1px solid #2b3139;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            text-align: center;
+            color: #eaecef;
+            font-weight: 500;
+            transition: all 0.25s ease;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #f0b90b;
+            box-shadow: 0 0 0 2px rgba(240, 185, 11, 0.2);
+        }
+        
+        input::placeholder {
+            color: #5e6673;
+        }
+        
+        .result {
+            text-align: center;
+            padding: 35px;
+            background: rgba(240, 185, 11, 0.05);
+            border-radius: 16px;
+            border: 1px solid rgba(240, 185, 11, 0.15);
+            margin-top: 30px;
+        }
+        
+        .result h3 {
+            color: #f0b90b;
+            margin-bottom: 20px;
+            font-size: 28px;
+        }
+        
+        .result p {
+            color: #b7bdc6;
+            margin-bottom: 15px;
+            font-size: 17px;
+            line-height: 1.6;
+        }
+        
+        .test-disabled {
+            text-align: center;
+            padding: 60px 40px;
+        }
+        
+        .test-disabled h2 {
+            color: #ff6b6b;
+            margin-bottom: 25px;
+            font-size: 30px;
+        }
+        
+        .test-disabled p {
+            color: #b7bdc6;
+            font-size: 18px;
+            line-height: 1.7;
+            margin-bottom: 15px;
+        }
+        
+        .test-disabled .icon {
+            font-size: 64px;
+            margin-bottom: 30px;
+            color: #ff6b6b;
+        }
+        
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #2b3139;
+        }
+        
+        .logo {
+            font-size: 20px;
+            font-weight: 700;
+            color: #f0b90b;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .user-info {
+            font-size: 14px;
+            color: #b7bdc6;
+            background: rgba(43, 49, 57, 0.8);
+            padding: 6px 14px;
+            border-radius: 20px;
+            border: 1px solid #2b3139;
+        }
+        
+        .progress {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding: 10px 0;
+        }
+        
+        .progress-bar {
+            flex-grow: 1;
+            height: 4px;
+            background: #2b3139;
+            border-radius: 2px;
+            overflow: hidden;
+            margin: 0 15px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #f0b90b, #f8d12f);
+            border-radius: 2px;
+            transition: width 0.3s ease;
+        }
+        
+        .progress-text {
+            font-size: 14px;
+            color: #b7bdc6;
+            font-weight: 600;
+            min-width: 60px;
+        }
+        
+        .btn-secondary {
+            background: rgba(43, 49, 57, 0.8);
+            color: #eaecef;
+            border: 1px solid #2b3139;
+            padding: 15px 30px;
+            font-size: 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            width: auto;
+            min-width: 200px;
+            font-weight: 600;
+            margin-top: 15px;
+            display: inline-block;
+        }
+        
+        .btn-secondary:hover {
+            background: rgba(59, 66, 76, 0.8);
+            border-color: #f0b90b;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(240, 185, 11, 0.1);
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                border-radius: 12px;
+            }
+            
+            .screen {
+                padding: 30px 25px;
+            }
+            
+            h1 {
+                font-size: 28px;
+            }
+            
+            .countdown {
+                font-size: 64px;
+            }
+            
+            .question-text {
+                font-size: 17px;
+            }
+            
+            .btn {
+                padding: 16px 30px;
+                font-size: 16px;
+            }
+        }
+        
+        .loader {
+            display: inline-block;
+            width: 18px;
+            height: 18px;
+            border: 3px solid rgba(240, 185, 11, 0.3);
+            border-radius: 50%;
+            border-top-color: #f0b90b;
+            animation: spin 1s ease-in-out infinite;
+            margin-right: 10px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
 </head>
-
 <body>
+    <div class="container">
+        <!-- Экран: Тест отключен -->
+        <div id="screen-disabled" class="screen test-disabled">
+            <div class="icon">⛔</div>
+            <h2>Тест временно отключен</h2>
+            <p>Тестовое задание в данный момент недоступно для прохождения.</p>
+            <p>Обратитесь к вашему тим-лидеру для получения доступа.</p>
+        </div>
+        
+        <!-- Экран: Ввод ника -->
+        <div id="screen-nickname" class="screen">
+            <div class="header">
+                <div class="logo">
+                    <span>📊</span> ОЦЕНКА ЗНАНИЙ
+                </div>
+                <div class="user-info">Шаг 1 из 10</div>
+            </div>
+            
+            <h1>Тест для сотрудников</h1>
+            <p style="text-align: center; margin-bottom: 35px; color: #b7bdc6; font-size: 17px; line-height: 1.6;">
+                Для начала теста введите ваш никнейм из Telegram.<br>
+                Тест состоит из 8 вопросов с ограничением по времени.
+            </p>
+            <input type="text" id="nickname" placeholder="Ваш ник в Telegram" maxlength="50">
+            <button id="start-btn" class="btn">
+                <span class="loader" style="display: none;"></span>
+                Начать тестирование
+            </button>
+        </div>
+        
+        <!-- Экран: Подготовка -->
+        <div id="screen-prepare" class="screen">
+            <div class="header">
+                <div class="logo">
+                    <span>⏱️</span> ПОДГОТОВКА
+                </div>
+                <div class="user-info" id="current-user"></div>
+            </div>
+            
+            <div class="warning">
+                <h3>Важная информация</h3>
+                <p>На каждый вопрос дается <strong>ровно 40 секунд</strong>.</p>
+                <p>Если не успеете ответить за отведенное время, ответ засчитывается как <strong>неправильный</strong>.</p>
+                <p>Всего вопросов: <strong>8</strong>. После начала теста остановить его <strong>невозможно</strong>.</p>
+            </div>
+            
+            <div style="text-align: center; margin-bottom: 20px;">
+                <div style="color: #b7bdc6; font-size: 16px; margin-bottom: 10px;">Тест начнется через:</div>
+                <div id="countdown" class="countdown">15</div>
+            </div>
+            
+            <div style="color: #5e6673; font-size: 14px; text-align: center;">
+                Приготовьтесь отвечать на вопросы
+            </div>
+        </div>
+        
+        <!-- Вопросы 1-8 -->
+        <div id="screen-q1" class="screen">
+            <div class="header">
+                <div class="logo">
+                    <span>❓</span> ВОПРОС 1/8
+                </div>
+                <div class="user-info" id="timer1">40 сек</div>
+            </div>
+            
+            <div class="progress">
+                <div class="progress-text">1/8</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 12.5%"></div>
+                </div>
+                <div class="progress-text">13%</div>
+            </div>
+            
+            <div class="question">
+                <div class="question-text">Аналитик - это:</div>
+                <div class="options">
+                    <div class="option" data-value="option1">Друг девушки, который хорошо разбирается в крипте и ведет закрытый канал с сигналами</div>
+                    <div class="option" data-value="option2">Финансовый аналитик, работающий в крупной компании, который не дает сигналы никому, кроме девушки и ее отца</div>
+                </div>
+            </div>
+            <button id="next1-btn" class="btn" disabled>Далее →</button>
+        </div>
+        
+        <div id="screen-q2" class="screen">
+            <div class="header">
+                <div class="logo">
+                    <span>❓</span> ВОПРОС 2/8
+                </div>
+                <div class="user-info" id="timer2">40 сек</div>
+            </div>
+            
+            <div class="progress">
+                <div class="progress-text">2/8</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 25%"></div>
+                </div>
+                <div class="progress-text">25%</div>
+            </div>
+            
+            <div class="question">
+                <div class="question-text">Кого вы возьмёте в работу?</div>
+                <div class="options">
+                    <div class="option" data-value="option1">Александр, 31 год, гражданство РФ, родился в Санкт-Петербурге, работает курьером в Ozon</div>
+                    <div class="option" data-value="option2">Наиль, 29 лет, гражданство РФ, родился в Казахстане, опытный специалист в сфере продаж, хорошо зарабатывает</div>
+                    <div class="option" data-value="option3">Никого</div>
+                </div>
+            </div>
+            <button id="next2-btn" class="btn" disabled>Далее →</button>
+        </div>
+        
+        <div id="screen-q3" class="screen">
+            <div class="header">
+                <div class="logo">
+                    <span>❓</span> ВОПРОС 3/8
+                </div>
+                <div class="user-info" id="timer3">40 сек</div>
+            </div>
+            
+            <div class="progress">
+                <div class="progress-text">3/8</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 37.5%"></div>
+                </div>
+                <div class="progress-text">38%</div>
+            </div>
+            
+            <div class="question">
+                <div class="question-text">Индикаторный вброс делается с целью:</div>
+                <div class="options">
+                    <div class="option" data-value="option1">Увидеть реакцию клиента на тот факт, что девушка зарабатывает на инвестициях</div>
+                    <div class="option" data-value="option2">Рассказать клиенту, как девушка работает с аналитиком, чтобы у клиента было понимание сферы на момент предложения</div>
+                </div>
+            </div>
+            <button id="next3-btn" class="btn" disabled>Далее →</button>
+        </div>
+        
+        <div id="screen-q4" class="screen">
+            <div class="header">
+                <div class="logo">
+                    <span>❓</span> ВОПРОС 4/8
+                </div>
+                <div class="user-info" id="timer4">40 сек</div>
+            </div>
+            
+            <div class="progress">
+                <div class="progress-text">4/8</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 50%"></div>
+                </div>
+                <div class="progress-text">50%</div>
+            </div>
+            
+            <div class="question">
+                <div class="question-text">Сколько вбросов должно быть за весь диалог?</div>
+                <div class="options">
+                    <div class="option" data-value="option1">2-3 вброса</div>
+                    <div class="option" data-value="option2">1 вброс</div>
+                    <div class="option" data-value="option3">4-6 вбросов</div>
+                </div>
+            </div>
+            <button id="next4-btn" class="btn" disabled>Далее →</button>
+        </div>
+        
+        <div id="screen-q5" class="screen">
+            <div class="header">
+                <div class="logo">
+                    <span>❓</span> ВОПРОС 5/8
+                </div>
+                <div class="user-info" id="timer5">40 сек</div>
+            </div>
+            
+            <div class="progress">
+                <div class="progress-text">5/8</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 62.5%"></div>
+                </div>
+                <div class="progress-text">63%</div>
+            </div>
+            
+            <div class="question">
+                <div class="question-text">Оптимальное количество "прогревов" до момента предложения:</div>
+                <div class="options">
+                    <div class="option" data-value="option1">3 раза</div>
+                    <div class="option" data-value="option2">1-2 раза</div>
+                    <div class="option" data-value="option3">5 и более раз</div>
+                </div>
+            </div>
+            <button id="next5-btn" class="btn" disabled>Далее →</button>
+        </div>
+        
+        <div id="screen-q6" class="screen">
+            <div class="header">
+                <div class="logo">
+                    <span>❓</span> ВОПРОС 6/8
+                </div>
+                <div class="user-info" id="timer6">40 сек</div>
+            </div>
+            
+            <div class="progress">
+                <div class="progress-text">6/8</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 75%"></div>
+                </div>
+                <div class="progress-text">75%</div>
+            </div>
+            
+            <div class="question">
+                <div class="question-text">Возьмете ли вы клиента, который сидит на сайте знакомств больше месяца, но инвестиции ему еще не предлагали?</div>
+                <div class="options">
+                    <div class="option" data-value="option1">Да</div>
+                    <div class="option" data-value="option2">Нет</div>
+                </div>
+            </div>
+            <button id="next6-btn" class="btn" disabled>Далее →</button>
+        </div>
+        
+        <div id="screen-q7" class="screen">
+            <div class="header">
+                <div class="logo">
+                    <span>❓</span> ВОПРОС 7/8
+                </div>
+                <div class="user-info" id="timer7">40 сек</div>
+            </div>
+            
+            <div class="progress">
+                <div class="progress-text">7/8</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 87.5%"></div>
+                </div>
+                <div class="progress-text">88%</div>
+            </div>
+            
+            <div class="question">
+                <div class="question-text">Когда делается индикаторный вброс?</div>
+                <div class="options">
+                    <div class="option" data-value="option1">На второй день общения</div>
+                    <div class="option" data-value="option2">В первый день общения, в первые 2 часа ведения диалога</div>
+                    <div class="option" data-value="option3">После предложения</div>
+                </div>
+            </div>
+            <button id="next7-btn" class="btn" disabled>Далее →</button>
+        </div>
+        
+        <div id="screen-q8" class="screen">
+            <div class="header">
+                <div class="logo">
+                    <span>❓</span> ВОПРОС 8/8
+                </div>
+                <div class="user-info" id="timer8">40 сек</div>
+            </div>
+            
+            <div class="progress">
+                <div class="progress-text">8/8</div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: 100%"></div>
+                </div>
+                <div class="progress-text">100%</div>
+            </div>
+            
+            <div class="question">
+                <div class="question-text">Можно ли передать клиента с хорошей официальной зарплатой, но с просрочками по кредитам?</div>
+                <div class="options">
+                    <div class="option" data-value="option1">Да</div>
+                    <div class="option" data-value="option2">Нет</div>
+                </div>
+            </div>
+            <button id="next8-btn" class="btn" disabled>Завершить тест</button>
+        </div>
+        
+        <!-- Экран: Результат -->
+        <div id="screen-result" class="screen">
+            <div class="header">
+                <div class="logo">
+                    <span>✅</span> РЕЗУЛЬТАТ
+                </div>
+                <div class="user-info">Завершено</div>
+            </div>
+            
+            <h1>Тестирование завершено!</h1>
+            <div class="result">
+                <h3>Спасибо за участие!</h3>
+                <p>Ваши ответы успешно сохранены в системе.</p>
+                <p>Результаты будут проверены администратором.</p>
+                <button id="restart-btn" class="btn-secondary" style="margin-top: 25px;">
+                    Пройти тест заново
+                </button>
+            </div>
+        </div>
+    </div>
 
-<h2>💲 USDT BEP-20 (Trust Wallet)</h2>
-
-<button class="primary" onclick="connectDapp()">📱 Trust Wallet (DApps)</button>
-<button class="primary" onclick="connectWalletConnect()">🔗 WalletConnect</button>
-
-<div class="box" id="wallet" style="display:none;">
-  <p><b>Адрес:</b><br><span id="addr"></span></p>
-  <p><b>USDT баланс:</b> <span id="usdtBal"></span></p>
-
-  <hr>
-
-  <input id="to" placeholder="Адрес получателя 0x..." />
-  <input id="amount" type="number" step="0.01" placeholder="Сумма USDT" />
-
-  <button class="primary" onclick="sendUSDT()">📤 Отправить USDT</button>
-</div>
-
-<script>
-const PROJECT_ID = "6035d04bd27909e21d106b345131f578";
-
-// USDT BEP-20 (BNB Smart Chain)
-const USDT_ADDRESS = "0x55d398326f99059fF775485246999027B3197955";
-const USDT_DECIMALS = 18;
-
-const USDT_ABI = [
-  "function balanceOf(address) view returns (uint256)",
-  "function transfer(address,uint256) returns (bool)"
-];
-
-let provider, signer, userAddress, usdt;
-
-/* ===== Trust Wallet DApps (НЕ ТРОГАЕМ) ===== */
-async function connectDapp() {
-  if (!window.ethereum) {
-    alert("Открой сайт через Trust Wallet → DApps");
-    return;
-  }
-
-  provider = new ethers.BrowserProvider(window.ethereum);
-  await provider.send("eth_requestAccounts", []);
-  signer = await provider.getSigner();
-  userAddress = await signer.getAddress();
-
-  await ensureBSC();
-  initUSDT();
-}
-
-/* ===== WalletConnect (НЕ ТРОГАЕМ) ===== */
-async function connectWalletConnect() {
-  if (location.protocol !== "https:" && location.hostname !== "localhost") {
-    alert("WalletConnect требует https");
-    return;
-  }
-
-  const signClient = await window.SignClient.init({
-    projectId: PROJECT_ID,
-    metadata: {
-      name: "USDT Transfer",
-      description: "Send USDT BEP20",
-      url: window.location.origin,
-      icons: []
-    }
-  });
-
-  const { uri, approval } = await signClient.connect({
-    requiredNamespaces: {
-      eip155: {
-        methods: ["eth_sendTransaction"],
-        chains: ["eip155:56"],
-        events: []
-      }
-    }
-  });
-
-  window.open(
-    "https://link.trustwallet.com/wc?uri=" + encodeURIComponent(uri),
-    "_blank"
-  );
-
-  const session = await approval();
-  userAddress = session.namespaces.eip155.accounts[0].split(":")[2];
-
-  provider = new ethers.BrowserProvider({
-    request: async ({ method, params }) => {
-      return signClient.request({
-        topic: session.topic,
-        chainId: "eip155:56",
-        request: { method, params }
-      });
-    }
-  });
-
-  signer = await provider.getSigner();
-  initUSDT();
-}
-
-/* ===== ENSURE BSC ===== */
-async function ensureBSC() {
-  const network = await provider.getNetwork();
-  if (network.chainId !== 56n) {
-    alert("Переключите сеть на BNB Smart Chain");
-    throw new Error("Wrong network");
-  }
-}
-
-/* ===== INIT ===== */
-async function initUSDT() {
-  usdt = new ethers.Contract(USDT_ADDRESS, USDT_ABI, signer);
-
-  document.getElementById("wallet").style.display = "block";
-  document.getElementById("addr").textContent = userAddress;
-
-  updateBalance();
-}
-
-async function updateBalance() {
-  const bal = await usdt.balanceOf(userAddress);
-  document.getElementById("usdtBal").textContent =
-    ethers.formatUnits(bal, USDT_DECIMALS) + " USDT";
-}
-
-/* ===== SEND USDT ===== */
-async function sendUSDT() {
-  const to = document.getElementById("to").value.trim();
-  const amount = document.getElementById("amount").value;
-
-  if (!ethers.isAddress(to)) {
-    alert("Неверный адрес");
-    return;
-  }
-
-  if (!amount || Number(amount) <= 0) {
-    alert("Введите сумму");
-    return;
-  }
-
-  try {
-    const value = ethers.parseUnits(amount, USDT_DECIMALS);
-    const balance = await usdt.balanceOf(userAddress);
-
-    if (balance < value) {
-      alert("Недостаточно USDT");
-      return;
-    }
-
-    const tx = await usdt.transfer(to, value, {
-      gasLimit: 100000n
-    });
-
-    alert("Подтвердите транзакцию в Trust Wallet");
-    await tx.wait();
-
-    alert("✅ USDT успешно отправлены");
-    updateBalance();
-
-  } catch (e) {
-    console.error(e);
-    if (e.code === 4001) {
-      alert("Транзакция отклонена");
-    } else {
-      alert("Ошибка: " + (e.message || "unknown"));
-    }
-  }
-}
-</script>
-
+    <script>
+        // Конфигурация Supabase
+        const SUPABASE_URL = 'https://wkukgnkfbxgpvlraczeu.supabase.co';
+        const SUPABASE_KEY = 'sb_publishable_11WBFNEcbspv1yDyfxq7sQ_Nl51ew5i';
+        
+        // Создаем клиент
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        
+        // ПРАВИЛЬНЫЕ ОТВЕТЫ
+        const CORRECT_ANSWERS = {
+            q1: 'option2', // Финансовый аналитик...
+            q2: 'option1', // Александр...
+            q3: 'option1', // Увидеть реакцию клиента...
+            q4: 'option1', // 2-3 вброса
+            q5: 'option1', // 3 раза
+            q6: 'option2', // Нет
+            q7: 'option2', // В первый день общения...
+            q8: 'option2'  // Нет
+        };
+        
+        // Переменные состояния
+        let currentScreen = null;
+        let nickname = '';
+        let answers = {
+            q1: null, q2: null, q3: null, q4: null,
+            q5: null, q6: null, q7: null, q8: null,
+            q1_time: 0, q2_time: 0, q3_time: 0, q4_time: 0,
+            q5_time: 0, q6_time: 0, q7_time: 0, q8_time: 0
+        };
+        
+        let countdownTimer = null;
+        let questionTimer = null;
+        let timeLeft = 15; // Изменено с 30 на 15 секунд
+        let questionTime = 40; // Изменено с 20 на 40 секунд
+        let currentQuestion = 1;
+        
+        // Элементы
+        const screens = {
+            disabled: document.getElementById('screen-disabled'),
+            nickname: document.getElementById('screen-nickname'),
+            prepare: document.getElementById('screen-prepare'),
+            q1: document.getElementById('screen-q1'),
+            q2: document.getElementById('screen-q2'),
+            q3: document.getElementById('screen-q3'),
+            q4: document.getElementById('screen-q4'),
+            q5: document.getElementById('screen-q5'),
+            q6: document.getElementById('screen-q6'),
+            q7: document.getElementById('screen-q7'),
+            q8: document.getElementById('screen-q8'),
+            result: document.getElementById('screen-result')
+        };
+        
+        // Инициализация
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log('🔧 Инициализация тестовой платформы...');
+            
+            try {
+                // Проверяем, активен ли тест
+                const { data: settings, error } = await supabaseClient
+                    .from('test_settings')
+                    .select('*')
+                    .single();
+                    
+                if (error) {
+                    console.error('Ошибка загрузки настроек:', error);
+                    showScreen('disabled');
+                    return;
+                }
+                
+                console.log('📊 Статус теста:', settings.is_active ? 'Активен' : 'Отключен');
+                
+                if (!settings.is_active) {
+                    showScreen('disabled');
+                    return;
+                }
+                
+                showScreen('nickname');
+                setupEventListeners();
+                
+            } catch (error) {
+                console.error('Ошибка инициализации:', error);
+                showScreen('disabled');
+            }
+        });
+        
+        function showScreen(screenName) {
+            console.log('🔄 Переход на экран:', screenName);
+            
+            // Скрываем все экраны
+            Object.values(screens).forEach(screen => {
+                if (screen) screen.classList.remove('active');
+            });
+            
+            // Показываем нужный экран
+            if (screens[screenName]) {
+                screens[screenName].classList.add('active');
+                currentScreen = screenName;
+                
+                // Обновляем информацию о пользователе
+                if (screenName === 'prepare') {
+                    document.getElementById('current-user').textContent = nickname;
+                }
+                
+                // Устанавливаем текущий вопрос
+                if (screenName.startsWith('q')) {
+                    currentQuestion = parseInt(screenName.replace('q', ''));
+                }
+            }
+            
+            // Останавливаем все таймеры при смене экрана
+            clearInterval(countdownTimer);
+            clearInterval(questionTimer);
+        }
+        
+        function setupEventListeners() {
+            // Кнопка начала теста
+            const startBtn = document.getElementById('start-btn');
+            startBtn.addEventListener('click', () => {
+                nickname = document.getElementById('nickname').value.trim();
+                if (nickname) {
+                    startBtn.disabled = true;
+                    startBtn.innerHTML = '<span class="loader"></span> Загрузка...';
+                    setTimeout(() => {
+                        startTest();
+                    }, 500);
+                } else {
+                    alert('Пожалуйста, введите ваш никнейм');
+                }
+            });
+            
+            // Ввод ника по Enter
+            document.getElementById('nickname').addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    nickname = document.getElementById('nickname').value.trim();
+                    if (nickname) {
+                        startBtn.disabled = true;
+                        startBtn.innerHTML = '<span class="loader"></span> Загрузка...';
+                        setTimeout(() => {
+                            startTest();
+                        }, 500);
+                    }
+                }
+            });
+            
+            // Навешиваем обработчики на все вопросы
+            for (let i = 1; i <= 8; i++) {
+                const questionScreen = document.getElementById(`screen-q${i}`);
+                if (questionScreen) {
+                    const options = questionScreen.querySelectorAll('.option');
+                    const nextBtn = document.getElementById(`next${i}-btn`);
+                    
+                    options.forEach(option => {
+                        option.addEventListener('click', () => {
+                            // Снимаем выделение со всех опций
+                            options.forEach(opt => opt.classList.remove('selected'));
+                            // Выделяем выбранную опцию
+                            option.classList.add('selected');
+                            // Сохраняем ответ
+                            answers[`q${i}`] = option.dataset.value;
+                            // Активируем кнопку "Далее"
+                            if (nextBtn) nextBtn.disabled = false;
+                        });
+                    });
+                    
+                    // Обработчик кнопки "Далее"
+                    if (nextBtn) {
+                        nextBtn.addEventListener('click', () => {
+                            saveAnswer(i, answers[`q${i}`], questionTime - timeLeft);
+                            if (i < 8) {
+                                showScreen(`q${i + 1}`);
+                                startQuestionTimer(i + 1);
+                            } else {
+                                completeTest();
+                            }
+                        });
+                    }
+                }
+            }
+            
+            // Кнопка "Пройти тест заново" на экране результата
+            const restartBtn = document.getElementById('restart-btn');
+            if (restartBtn) {
+                restartBtn.addEventListener('click', () => {
+                    resetTest();
+                });
+            }
+        }
+        
+        function startTest() {
+            console.log('🚀 Начало теста для пользователя:', nickname);
+            document.getElementById('start-btn').innerHTML = 'Начать тестирование';
+            document.getElementById('start-btn').disabled = false;
+            showScreen('prepare');
+            startCountdown();
+        }
+        
+        function startCountdown() {
+            timeLeft = 15; // 15 секунд подготовки
+            updateCountdown();
+            
+            countdownTimer = setInterval(() => {
+                timeLeft--;
+                updateCountdown();
+                
+                if (timeLeft <= 0) {
+                    clearInterval(countdownTimer);
+                    showScreen('q1');
+                    startQuestionTimer(1);
+                }
+            }, 1000);
+        }
+        
+        function updateCountdown() {
+            const countdownEl = document.getElementById('countdown');
+            if (countdownEl) {
+                countdownEl.textContent = timeLeft < 10 ? `0${timeLeft}` : timeLeft;
+                
+                // Меняем цвет при приближении к 0
+                if (timeLeft <= 5) {
+                    countdownEl.style.color = '#ff6b6b';
+                    countdownEl.style.textShadow = '0 0 20px rgba(255, 107, 107, 0.4)';
+                } else if (timeLeft <= 10) {
+                    countdownEl.style.color = '#f8d12f';
+                    countdownEl.style.textShadow = '0 0 20px rgba(248, 209, 47, 0.4)';
+                }
+            }
+        }
+        
+        function startQuestionTimer(questionNum) {
+            timeLeft = questionTime; // 40 секунд на ответ
+            updateQuestionTimer(questionNum);
+            
+            questionTimer = setInterval(() => {
+                timeLeft--;
+                updateQuestionTimer(questionNum);
+                
+                if (timeLeft <= 0) {
+                    clearInterval(questionTimer);
+                    handleTimeout(questionNum);
+                }
+            }, 1000);
+        }
+        
+        function updateQuestionTimer(questionNum) {
+            const timerEl = document.getElementById(`timer${questionNum}`);
+            if (timerEl) {
+                timerEl.textContent = `${timeLeft} сек`;
+                timerEl.className = 'user-info';
+                
+                if (timeLeft <= 10) {
+                    timerEl.style.color = '#ff6b6b';
+                    timerEl.style.borderColor = 'rgba(255, 107, 107, 0.3)';
+                    timerEl.style.animation = 'pulse 1s infinite';
+                } else if (timeLeft <= 20) {
+                    timerEl.style.color = '#f8d12f';
+                    timerEl.style.borderColor = 'rgba(248, 209, 47, 0.3)';
+                }
+            }
+        }
+        
+        function handleTimeout(questionNum) {
+            console.log(`⏰ Таймаут на вопросе ${questionNum}`);
+            
+            // Показываем визуальную обратную связь
+            const timerEl = document.getElementById(`timer${questionNum}`);
+            if (timerEl) {
+                timerEl.textContent = 'Время вышло!';
+                timerEl.style.color = '#ff6b6b';
+                timerEl.style.background = 'rgba(255, 107, 107, 0.1)';
+            }
+            
+            // Автоматически переходим к следующему вопросу
+            setTimeout(() => {
+                saveAnswer(questionNum, null, questionTime);
+                if (questionNum < 8) {
+                    showScreen(`q${questionNum + 1}`);
+                    startQuestionTimer(questionNum + 1);
+                } else {
+                    completeTest();
+                }
+            }, 1000);
+        }
+        
+        async function saveAnswer(questionNum, answer, timeSpent) {
+            console.log(`💾 Сохранение ответа ${questionNum}:`, answer, 'время:', timeSpent);
+            
+            // Сохраняем локально
+            answers[`q${questionNum}`] = answer;
+            answers[`q${questionNum}_time`] = timeSpent;
+        }
+        
+        async function completeTest() {
+            console.log('✅ Завершение теста, ответы:', answers);
+            
+            // Вычисляем правильность ответов и общее количество правильных
+            let total_correct = 0;
+            let q_correct = {};
+            
+            for (let i = 1; i <= 8; i++) {
+                const isCorrect = answers[`q${i}`] === CORRECT_ANSWERS[`q${i}`];
+                q_correct[`q${i}_is_correct`] = isCorrect;
+                if (isCorrect) total_correct++;
+            }
+            
+            // Вычисляем общее время
+            const total_time_spent = 
+                (answers.q1_time || 0) + (answers.q2_time || 0) + 
+                (answers.q3_time || 0) + (answers.q4_time || 0) +
+                (answers.q5_time || 0) + (answers.q6_time || 0) + 
+                (answers.q7_time || 0) + (answers.q8_time || 0);
+            
+            try {
+                // Сохраняем результаты в базу
+                const { data, error } = await supabaseClient
+                    .from('test_sessions')
+                    .insert([{
+                        telegram_nickname: nickname,
+                        status: 'completed',
+                        q1_answer: answers.q1,
+                        q2_answer: answers.q2,
+                        q3_answer: answers.q3,
+                        q4_answer: answers.q4,
+                        q5_answer: answers.q5,
+                        q6_answer: answers.q6,
+                        q7_answer: answers.q7,
+                        q8_answer: answers.q8,
+                        q1_time_spent: answers.q1_time,
+                        q2_time_spent: answers.q2_time,
+                        q3_time_spent: answers.q3_time,
+                        q4_time_spent: answers.q4_time,
+                        q5_time_spent: answers.q5_time,
+                        q6_time_spent: answers.q6_time,
+                        q7_time_spent: answers.q7_time,
+                        q8_time_spent: answers.q8_time,
+                        q1_is_correct: q_correct.q1_is_correct,
+                        q2_is_correct: q_correct.q2_is_correct,
+                        q3_is_correct: q_correct.q3_is_correct,
+                        q4_is_correct: q_correct.q4_is_correct,
+                        q5_is_correct: q_correct.q5_is_correct,
+                        q6_is_correct: q_correct.q6_is_correct,
+                        q7_is_correct: q_correct.q7_is_correct,
+                        q8_is_correct: q_correct.q8_is_correct,
+                        total_correct: total_correct,
+                        total_time_spent: total_time_spent
+                    }]);
+                
+                if (error) {
+                    console.error('❌ Ошибка сохранения:', error);
+                    alert('Ошибка сохранения результатов. Пожалуйста, сообщите администратору.');
+                } else {
+                    console.log('📁 Результаты сохранены успешно');
+                }
+                
+            } catch (error) {
+                console.error('❌ Ошибка при завершении теста:', error);
+            }
+            
+            showScreen('result');
+        }
+        
+        function resetTest() {
+            // Сбрасываем все переменные состояния
+            nickname = '';
+            answers = {
+                q1: null, q2: null, q3: null, q4: null,
+                q5: null, q6: null, q7: null, q8: null,
+                q1_time: 0, q2_time: 0, q3_time: 0, q4_time: 0,
+                q5_time: 0, q6_time: 0, q7_time: 0, q8_time: 0
+            };
+            
+            currentQuestion = 1;
+            timeLeft = 15;
+            
+            // Сбрасываем выбранные ответы на всех экранах вопросов
+            for (let i = 1; i <= 8; i++) {
+                const questionScreen = document.getElementById(`screen-q${i}`);
+                if (questionScreen) {
+                    const options = questionScreen.querySelectorAll('.option');
+                    const nextBtn = document.getElementById(`next${i}-btn`);
+                    
+                    options.forEach(option => {
+                        option.classList.remove('selected');
+                    });
+                    
+                    if (nextBtn) {
+                        nextBtn.disabled = true;
+                    }
+                }
+            }
+            
+            // Очищаем поле ввода ника
+            document.getElementById('nickname').value = '';
+            
+            // Возвращаемся на начальный экран
+            showScreen('nickname');
+        }
+        
+        // Для отладки: показываем скрытый экран если что-то пошло не так
+        setTimeout(() => {
+            if (!currentScreen) {
+                console.log('⚠️ Нет активного экрана, показываем nickname');
+                showScreen('nickname');
+                setupEventListeners();
+            }
+        }, 1000);
+    </script>
 </body>
 </html>
