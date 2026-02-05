@@ -1,1169 +1,4973 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Тестовое задание | Оценка знаний</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-        }
-        
-        body {
-            background: #0b0e11;
-            color: #eaecef;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-            position: relative;
-            overflow-x: hidden;
-        }
-        
-        body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 100%;
-            background: 
-                radial-gradient(circle at 20% 50%, rgba(240, 185, 11, 0.05) 0%, transparent 50%),
-                radial-gradient(circle at 80% 20%, rgba(240, 185, 11, 0.03) 0%, transparent 50%),
-                radial-gradient(circle at 40% 80%, rgba(240, 185, 11, 0.04) 0%, transparent 50%);
-            z-index: -1;
-        }
-        
-        .container {
-            background: rgba(18, 22, 28, 0.95);
-            border: 1px solid #2b3139;
-            border-radius: 16px;
-            width: 100%;
-            max-width: 520px;
-            overflow: hidden;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
-            backdrop-filter: blur(10px);
-            position: relative;
-        }
-        
-        .container::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, #f0b90b, #f8d12f, #f0b90b);
-            border-radius: 16px 16px 0 0;
-        }
-        
-        .screen {
-            padding: 40px 35px;
-            display: none;
-        }
-        
-        .screen.active {
-            display: block;
-            animation: fadeIn 0.3s ease;
-        }
-        
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        h1 {
-            color: #f0b90b;
-            margin-bottom: 30px;
-            text-align: center;
-            font-size: 32px;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-            background: linear-gradient(135deg, #f0b90b 0%, #f8d12f 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-        
-        h2 {
-            color: #f0b90b;
-            margin-bottom: 25px;
-            text-align: center;
-            font-size: 26px;
-            font-weight: 600;
-        }
-        
-        .warning {
-            background: rgba(240, 185, 11, 0.08);
-            border: 1px solid rgba(240, 185, 11, 0.3);
-            border-radius: 12px;
-            padding: 25px;
-            margin-bottom: 35px;
-            text-align: center;
-            color: #b7bdc6;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .warning::before {
-            content: '⚠️';
-            font-size: 24px;
-            display: block;
-            margin-bottom: 15px;
-        }
-        
-        .warning h3 {
-            color: #f0b90b;
-            margin-bottom: 15px;
-            font-size: 20px;
-        }
-        
-        .warning p {
-            margin-bottom: 10px;
-            line-height: 1.6;
-            font-size: 16px;
-        }
-        
-        .warning strong {
-            color: #f0b90b;
-            font-weight: 600;
-        }
-        
-        .countdown {
-            font-size: 80px;
-            font-weight: 700;
-            text-align: center;
-            color: #f0b90b;
-            margin: 35px 0;
-            text-shadow: 0 0 20px rgba(240, 185, 11, 0.3);
-            font-family: 'Courier New', monospace;
-            letter-spacing: 5px;
-        }
-        
-        .question {
-            margin-bottom: 35px;
-        }
-        
-        .question-number {
-            background: rgba(240, 185, 11, 0.1);
-            color: #f0b90b;
-            padding: 10px 22px;
-            border-radius: 30px;
-            display: inline-block;
-            margin-bottom: 20px;
-            font-weight: 600;
-            font-size: 14px;
-            border: 1px solid rgba(240, 185, 11, 0.2);
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-        
-        .question-text {
-            font-size: 18px;
-            margin-bottom: 25px;
-            color: #eaecef;
-            line-height: 1.5;
-            font-weight: 500;
-        }
-        
-        .options {
-            display: grid;
-            gap: 12px;
-            margin-bottom: 35px;
-        }
-        
-        .option {
-            background: rgba(43, 49, 57, 0.8);
-            border: 1px solid #2b3139;
-            border-radius: 12px;
-            padding: 18px;
-            cursor: pointer;
-            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-            font-size: 16px;
-            text-align: left;
-            color: #b7bdc6;
-            font-weight: 500;
-            position: relative;
-            overflow: hidden;
-            line-height: 1.5;
-        }
-        
-        .option:hover {
-            background: rgba(59, 66, 76, 0.8);
-            border-color: #f0b90b;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(240, 185, 11, 0.1);
-        }
-        
-        .option.selected {
-            background: rgba(240, 185, 11, 0.12);
-            color: #f0b90b;
-            border-color: #f0b90b;
-            box-shadow: 0 0 0 1px #f0b90b, 0 8px 20px rgba(240, 185, 11, 0.15);
-        }
-        
-        .option.selected::after {
-            content: '✓';
-            position: absolute;
-            right: 18px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #f0b90b;
-            font-weight: bold;
-            font-size: 18px;
-        }
-        
-        .timer {
-            text-align: center;
-            font-size: 28px;
-            font-weight: 700;
-            color: #f0b90b;
-            margin: 25px 0;
-            font-family: 'Courier New', monospace;
-            letter-spacing: 2px;
-            text-shadow: 0 0 15px rgba(240, 185, 11, 0.3);
-        }
-        
-        .timer.warning {
-            color: #ff6b6b;
-            animation: pulse 1s infinite;
-        }
-        
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.7; }
-            100% { opacity: 1; }
-        }
-        
-        .btn {
-            background: linear-gradient(135deg, #f0b90b 0%, #f8d12f 100%);
-            color: #0b0e11;
-            border: none;
-            padding: 18px 40px;
-            font-size: 17px;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.25s ease;
-            width: 100%;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 12px 25px rgba(240, 185, 11, 0.25);
-        }
-        
-        .btn:active {
-            transform: translateY(0);
-        }
-        
-        .btn:disabled {
-            background: #2b3139;
-            color: #5e6673;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-        
-        input {
-            width: 100%;
-            padding: 18px;
-            font-size: 17px;
-            background: rgba(43, 49, 57, 0.8);
-            border: 1px solid #2b3139;
-            border-radius: 12px;
-            margin-bottom: 30px;
-            text-align: center;
-            color: #eaecef;
-            font-weight: 500;
-            transition: all 0.25s ease;
-        }
-        
-        input:focus {
-            outline: none;
-            border-color: #f0b90b;
-            box-shadow: 0 0 0 2px rgba(240, 185, 11, 0.2);
-        }
-        
-        input::placeholder {
-            color: #5e6673;
-        }
-        
-        .result {
-            text-align: center;
-            padding: 35px;
-            background: rgba(240, 185, 11, 0.05);
-            border-radius: 16px;
-            border: 1px solid rgba(240, 185, 11, 0.15);
-            margin-top: 30px;
-        }
-        
-        .result h3 {
-            color: #f0b90b;
-            margin-bottom: 20px;
-            font-size: 28px;
-        }
-        
-        .result p {
-            color: #b7bdc6;
-            margin-bottom: 15px;
-            font-size: 17px;
-            line-height: 1.6;
-        }
-        
-        .test-disabled {
-            text-align: center;
-            padding: 60px 40px;
-        }
-        
-        .test-disabled h2 {
-            color: #ff6b6b;
-            margin-bottom: 25px;
-            font-size: 30px;
-        }
-        
-        .test-disabled p {
-            color: #b7bdc6;
-            font-size: 18px;
-            line-height: 1.7;
-            margin-bottom: 15px;
-        }
-        
-        .test-disabled .icon {
-            font-size: 64px;
-            margin-bottom: 30px;
-            color: #ff6b6b;
-        }
-        
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 30px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid #2b3139;
-        }
-        
-        .logo {
-            font-size: 20px;
-            font-weight: 700;
-            color: #f0b90b;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .user-info {
-            font-size: 14px;
-            color: #b7bdc6;
-            background: rgba(43, 49, 57, 0.8);
-            padding: 6px 14px;
-            border-radius: 20px;
-            border: 1px solid #2b3139;
-        }
-        
-        .progress {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-            padding: 10px 0;
-        }
-        
-        .progress-bar {
-            flex-grow: 1;
-            height: 4px;
-            background: #2b3139;
-            border-radius: 2px;
-            overflow: hidden;
-            margin: 0 15px;
-        }
-        
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #f0b90b, #f8d12f);
-            border-radius: 2px;
-            transition: width 0.3s ease;
-        }
-        
-        .progress-text {
-            font-size: 14px;
-            color: #b7bdc6;
-            font-weight: 600;
-            min-width: 60px;
-        }
-        
-        .btn-secondary {
-            background: rgba(43, 49, 57, 0.8);
-            color: #eaecef;
-            border: 1px solid #2b3139;
-            padding: 15px 30px;
-            font-size: 16px;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.25s ease;
-            width: auto;
-            min-width: 200px;
-            font-weight: 600;
-            margin-top: 15px;
-            display: inline-block;
-        }
-        
-        .btn-secondary:hover {
-            background: rgba(59, 66, 76, 0.8);
-            border-color: #f0b90b;
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(240, 185, 11, 0.1);
-        }
-        
-        @media (max-width: 480px) {
-            .container {
-                border-radius: 12px;
-            }
-            
-            .screen {
-                padding: 30px 25px;
-            }
-            
-            h1 {
-                font-size: 28px;
-            }
-            
-            .countdown {
-                font-size: 64px;
-            }
-            
-            .question-text {
-                font-size: 17px;
-            }
-            
-            .btn {
-                padding: 16px 30px;
-                font-size: 16px;
-            }
-        }
-        
-        .loader {
-            display: inline-block;
-            width: 18px;
-            height: 18px;
-            border: 3px solid rgba(240, 185, 11, 0.3);
-            border-radius: 50%;
-            border-top-color: #f0b90b;
-            animation: spin 1s ease-in-out infinite;
-            margin-right: 10px;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Фьючерсный терминал | Расширенный</title>
+  <!-- Подключение Supabase SDK -->
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <style>
+    /* ============================================= */
+    /* ОСНОВНЫЕ СТИЛИ */
+    /* ============================================= */
+    
+    .account-blocked-toast {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: linear-gradient(90deg, #f85149 0%, #da3633 100%);
+      color: white;
+      padding: 15px 25px;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 500;
+      z-index: 9999;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+      display: none;
+      animation: slideIn 0.3s ease;
+      max-width: 350px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .account-blocked-toast .close-btn {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 20px;
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      cursor: pointer;
+      padding: 0;
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 4px;
+      transition: background-color 0.2s;
+    }
+
+    .account-blocked-toast .close-btn:hover {
+      background-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .account-blocked-toast .message {
+      padding-right: 30px;
+      line-height: 1.5;
+    }
+
+    .btn-disabled {
+      opacity: 0.7;
+      cursor: not-allowed !important;
+      position: relative;
+    }
+
+    .btn-disabled:hover::after {
+      content: "Аккаунт заблокирован";
+      position: absolute;
+      top: -40px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #f85149;
+      color: white;
+      padding: 8px 12px;
+      border-radius: 4px;
+      font-size: 12px;
+      white-space: nowrap;
+      z-index: 100;
+    }
+
+    .btn-disabled:hover::before {
+      content: "";
+      position: absolute;
+      top: -8px;
+      left: 50%;
+      transform: translateX(-50%);
+      border: 6px solid transparent;
+      border-top-color: #f85149;
+      z-index: 101;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      overflow-x: hidden;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #0d1117;
+      color: #c9d1d9;
+      -webkit-text-size-adjust: 100%;
+      padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+      line-height: 1.5;
+    }
+
+    .header-bar {
+      display: flex;
+      justify-content: space-between;
+      background: #161b22;
+      padding: 10px max(20px, env(safe-area-inset-right));
+      padding-left: max(20px, env(safe-area-inset-left));
+      border-bottom: 1px solid #30363d;
+      position: sticky;
+      top: 0;
+      z-index: 101;
+      font-size: 14px;
+      align-items: center;
+      height: 60px;
+      width: 100%;
+    }
+
+    .balance-info {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+      overflow-x: auto;
+      white-space: nowrap;
+      max-width: 60%;
+    }
+
+    .balance-item {
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+
+    .balance-label {
+      color: #8b949e;
+      font-size: 11px;
+      margin-bottom: 2px;
+    }
+
+    .balance-value {
+      font-weight: bold;
+      font-size: 13px;
+    }
+
+    .user-menu {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    .menu-toggle {
+      background: none;
+      border: none;
+      color: #c9d1d9;
+      font-size: 24px;
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 4px;
+      transition: background-color 0.2s;
+      min-width: 44px;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .menu-toggle:hover {
+      background-color: #21262d;
+    }
+
+    .dropdown-menu {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      min-width: 200px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      display: none;
+      z-index: 1000;
+      margin-top: 5px;
+    }
+
+    .dropdown-menu.active {
+      display: block;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .menu-item {
+      padding: 12px 16px;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      border-bottom: 1px solid #21262d;
+      min-height: 44px;
+    }
+
+    .menu-item:last-child {
+      border-bottom: none;
+    }
+
+    .menu-item:hover {
+      background-color: #21262d;
+    }
+
+    .menu-item img {
+      width: 18px;
+      height: 18px;
+      filter: brightness(0.8);
+    }
+
+    .positive {
+      color: #16c784;
+    }
+
+    .negative {
+      color: #ea3943;
+    }
+
+    .login-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #0d1117;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: center;
+      z-index: 1000;
+      padding-top: 80px;
+      padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    }
+
+    .login-form {
+      background: #161b22;
+      padding: 30px;
+      border-radius: 10px;
+      border: 1px solid #30363d;
+      width: calc(100% - 40px);
+      max-width: 400px;
+      margin-top: 20px;
+      margin-left: 20px;
+      margin-right: 20px;
+    }
+
+    .login-form h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #f0f6fc;
+    }
+
+    .login-form input {
+      width: 100%;
+      padding: 15px;
+      margin-bottom: 15px;
+      background: #0d1117;
+      border: 1px solid #30363d;
+      color: white;
+      border-radius: 5px;
+      font-size: 16px;
+      min-height: 50px;
+    }
+
+    .login-form button {
+      width: 100%;
+      padding: 15px;
+      background-color: #1f6feb;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+      font-weight: 600;
+      min-height: 50px;
+    }
+
+    .login-error {
+      color: #f85149;
+      text-align: center;
+      margin-top: 10px;
+      font-size: 14px;
+      display: none;
+    }
+
+    .register-link {
+      text-align: center;
+      margin-top: 15px;
+      font-size: 14px;
+      color: #8b949e;
+    }
+
+    .register-link a {
+      color: #1f6feb;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .main-container {
+      display: flex;
+      min-height: calc(100vh - 60px);
+    }
+
+    .market-column {
+      width: 280px;
+      background: #161b22;
+      border-right: 1px solid #30363d;
+      padding: 15px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .layout {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+    }
+
+    .sidebar {
+      display: flex;
+      flex-direction: row;
+      justify-content: space-around;
+      background: #161b22;
+      padding: 10px 0;
+      border-bottom: 1px solid #30363d;
+      position: sticky;
+      top: 60px;
+      z-index: 100;
+    }
+
+    .sidebar-item {
+      text-align: center;
+      font-size: 12px;
+      color: #c9d1d9;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-width: 60px;
+      padding: 10px 5px;
+      border-radius: 5px;
+      transition: background-color 0.2s;
+      min-height: 44px;
+    }
+
+    .sidebar-item:hover, .sidebar-item.active {
+      background-color: #21262d;
+    }
+
+    .sidebar-item img {
+      width: 20px;
+      height: 20px;
+      margin-bottom: 5px;
+    }
+
+    .page-content {
+      flex: 1;
+      padding: 20px;
+      padding: max(20px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+      overflow-y: auto;
+      display: none;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .page-content.active {
+      display: block;
+    }
+
+    .chart-section {
+      background: #0d1117;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      height: 50vh;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+
+    .chart-section iframe {
+      flex: 1;
+      width: 100%;
+      border: none;
+      min-height: 300px;
+      border-radius: 0 0 8px 8px;
+    }
+
+    .deal-display {
+      background: #0d1117;
+      border-top: 1px solid #30363d;
+      padding: 15px;
+      font-family: monospace;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-height: 30vh;
+      overflow-y: auto;
+    }
+
+    .deal-row {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      font-size: 13px;
+    }
+
+    .deal-column {
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .terminal-section {
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 20px;
+      overflow-y: auto;
+      transition: transform 0.3s ease, margin-top 0.3s ease;
+      width: 100%;
+      box-sizing: border-box;
+      position: relative;
+    }
+
+    .selector-container {
+      margin-bottom: 15px;
+      position: relative;
+      width: 100%;
+    }
+
+    .selector-button {
+      width: 100%;
+      padding: 15px;
+      background: #0d1117;
+      color: white;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      text-align: left;
+      cursor: pointer;
+      font-size: 16px;
+      min-height: 50px;
+    }
+
+    .dropdown {
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      background: rgba(22, 27, 34, 0.95);
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      max-height: 300px;
+      overflow-y: auto;
+      display: none;
+      z-index: 100;
+    }
+
+    .dropdown input {
+      width: 100%;
+      padding: 15px;
+      background: #0d1117;
+      color: white;
+      border: none;
+      border-bottom: 1px solid #30363d;
+      font-size: 16px;
+      min-height: 50px;
+    }
+
+    .dropdown div {
+      padding: 15px;
+      cursor: pointer;
+      font-size: 16px;
+      min-height: 44px;
+    }
+
+    .dropdown div:hover {
+      background: #21262d;
+    }
+
+    .terminal-section select,
+    .terminal-section input[type="number"] {
+      width: 100%;
+      padding: 15px;
+      background: #0d1117;
+      border: 1px solid #30363d;
+      color: white;
+      border-radius: 5px;
+      margin-bottom: 15px;
+      font-size: 16px;
+      min-height: 50px;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 15px;
+      font-size: 16px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-bottom: 15px;
+      transition: opacity 0.2s;
+      min-height: 50px;
+      position: relative;
+    }
+
+    .btn:hover {
+      opacity: 0.9;
+    }
+
+    .btn-long {
+      background-color: #16c784;
+      color: white;
+    }
+
+    .btn-short {
+      background-color: #ea3943;
+      color: white;
+    }
+
+    .checkbox-group {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+
+    .checkbox-group label {
+      display: flex;
+      align-items: center;
+      font-size: 16px;
+      gap: 10px;
+      min-height: 44px;
+    }
+
+    .checkbox-group input {
+      width: 20px;
+      height: 20px;
+      min-width: 20px;
+    }
+
+    .tp-sl {
+      display: none;
+      margin-bottom: 15px;
+    }
+
+    .tp-sl input {
+      width: 100%;
+      margin-bottom: 10px;
+      padding: 15px;
+      min-height: 50px;
+      font-size: 16px;
+    }
+
+    .flex-space {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .info-line {
+      font-size: 15px;
+      margin-bottom: 10px;
+      line-height: 1.4;
+    }
+
+    .leverage-display {
+      text-align: center;
+      margin: 10px 0 20px;
+      font-size: 16px;
+    }
+
+    .market-info {
+      background: #161b22;
+      padding: 15px;
+      border-radius: 6px;
+      margin-bottom: 20px;
+      border: 1px solid #30363d;
+    }
+
+    .market-info div {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 10px;
+      font-size: 15px;
+    }
+
+    .market-info div:last-child {
+      margin-bottom: 0;
+    }
+
+    .title {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+
+    .positions-title {
+      padding: 15px;
+      font-weight: bold;
+      border-bottom: 1px solid #30363d;
+      background: #161b22;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      min-height: 44px;
+      font-size: 16px;
+      border-radius: 6px 6px 0 0;
+      transition: all 0.2s ease;
+      margin: 0;
+    }
+
+    .positions-title:hover {
+      background: #1a2029;
+    }
+
+    .positions-title::after {
+      content: "▼";
+      font-size: 14px;
+      transition: transform 0.3s;
+    }
+
+    .positions-title.expanded::after {
+      transform: rotate(180deg);
+    }
+
+    .deal-block {
+      border-bottom: 1px solid #30363d;
+      padding: 15px;
+      transition: background-color 0.2s;
+      font-size: 15px;
+      background: #0d1117;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+    }
+
+    .deal-block:hover {
+      background-color: #161b22;
+    }
+
+    .deal-info {
+      flex: 1;
+    }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: bold;
+      margin-bottom: 15px;
+      color: #8b949e;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .watchlist-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid #21262d;
+      cursor: pointer;
+      transition: background-color 0.2s;
+      min-height: 44px;
+    }
+
+    .watchlist-item:hover {
+      background-color: #21262d;
+    }
+
+    .asset-name {
+      font-weight: bold;
+      font-size: 15px;
+    }
+
+    .asset-price {
+      font-size: 15px;
+    }
+
+    .asset-change {
+      font-size: 14px;
+      padding: 4px 8px;
+      border-radius: 4px;
+    }
+
+    .quick-buttons {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .quick-btn {
+      background: #21262d;
+      border: 1px solid #30363d;
+      color: #c9d1d9;
+      padding: 12px;
+      border-radius: 5px;
+      cursor: pointer;
+      text-align: center;
+      font-size: 14px;
+      transition: background-color 0.2s;
+      min-height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .quick-btn:hover {
+      background: #30363d;
+    }
+
+    .portfolio-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      font-size: 15px;
+    }
+
+    .portfolio-bar {
+      height: 8px;
+      background: #30363d;
+      border-radius: 4px;
+      margin-top: 8px;
+      overflow: hidden;
+    }
+
+    .portfolio-fill {
+      height: 100%;
+      border-radius: 4px;
+    }
+
+    .market-stats {
+      display: flex;
+      justify-content: space-between;
+      font-size: 14px;
+      margin-top: 10px;
+      gap: 15px;
+    }
+
+    .stat-item {
+      text-align: center;
+      flex: 1;
+    }
+
+    .stat-value {
+      font-weight: bold;
+      font-size: 16px;
+    }
+
+    .stat-label {
+      color: #8b949e;
+      font-size: 13px;
+    }
+
+    .profile-container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: #161b22;
+      padding: 30px;
+      border: 1px solid #30363d;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .profile-section {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      margin-top: 25px;
+      border-top: 1px solid #30363d;
+      padding-top: 20px;
+    }
+
+    .profile-column {
+      flex: 1;
+      margin: 10px;
+      min-width: 300px;
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin: 15px 0;
+      padding: 12px 0;
+      border-bottom: 1px solid #21262d;
+      font-size: 16px;
+    }
+
+    .label {
+      font-weight: 600;
+      color: #8b949e;
+    }
+
+    .profile-btn {
+      background-color: #238636;
+      border: none;
+      padding: 12px 20px;
+      color: white;
+      cursor: pointer;
+      border-radius: 6px;
+      font-weight: 600;
+      transition: background-color 0.2s;
+      font-size: 16px;
+      min-height: 44px;
+    }
+
+    .profile-btn:hover {
+      background-color: #2ea043;
+    }
+
+    .btn-secondary {
+      background-color: #21262d;
+      border: 1px solid #30363d;
+    }
+
+    .btn-secondary:hover {
+      background-color: #30363d;
+    }
+
+    .btn-kyc {
+      background-color: #1f6feb;
+      width: 100%;
+      padding: 15px;
+      margin-top: 15px;
+    }
+
+    .btn-kyc:hover {
+      background-color: #2b7ff5;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 12px;
+      font-size: 14px;
+      font-weight: 600;
+    }
+
+    .status-verified {
+      background-color: rgba(35, 134, 54, 0.2);
+      color: #3fb950;
+    }
+
+    .status-pending {
+      background-color: rgba(187, 128, 9, 0.2);
+      color: #d29922;
+    }
+
+    .kyc-message {
+      background-color: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 20px;
+      margin: 20px 0;
+      font-size: 16px;
+      line-height: 1.5;
+    }
+
+    .file-upload {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 20px;
+    }
+
+    .file-upload label {
+      margin-bottom: 10px;
+      font-weight: 500;
+      color: #8b949e;
+      font-size: 16px;
+    }
+
+    .file-input {
+      background-color: #0d1117;
+      color: white;
+      border: 1px solid #30363d;
+      padding: 15px;
+      border-radius: 6px;
+      font-size: 16px;
+      min-height: 50px;
+    }
+
+    .user-id {
+      display: flex;
+      align-items: center;
+      background-color: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      padding: 15px;
+      margin-bottom: 25px;
+      font-size: 16px;
+    }
+
+    .user-email {
+      display: flex;
+      align-items: center;
+      background-color: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      padding: 15px;
+      margin-bottom: 25px;
+      font-size: 16px;
+    }
+
+    .balance-info-section {
+      background: #161b22;
+      padding: 25px;
+      border: 1px solid #30363d;
+      border-radius: 10px;
+      margin-bottom: 25px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .wallet-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 25px;
+      flex-wrap: wrap;
+    }
+
+    .wallet-tab {
+      background: #21262d;
+      padding: 15px 20px;
+      border-radius: 8px;
+      border: 1px solid #30363d;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 16px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      min-height: 44px;
+      flex: 1;
+      min-width: 120px;
+      justify-content: center;
+    }
+
+    .wallet-tab:hover {
+      background: #30363d;
+    }
+
+    .wallet-tab.active {
+      background: #1f6feb;
+      border-color: #1f6feb;
+      box-shadow: 0 2px 8px rgba(31, 111, 235, 0.3);
+    }
+
+    .wallet-content {
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .wallet-content.active {
+      display: block;
+    }
+
+    .qr-code-container {
+      text-align: center;
+      margin: 20px 0;
+      padding: 20px;
+      background: #0d1117;
+      border-radius: 10px;
+      border: 1px solid #30363d;
+    }
+
+    .wallet-address {
+      background: #161b22;
+      padding: 15px;
+      border-radius: 8px;
+      font-family: 'Courier New', monospace;
+      word-break: break-all;
+      margin: 20px 0;
+      text-align: center;
+      font-size: 16px;
+      border: 1px solid #30363d;
+      color: #f0f6fc;
+    }
+
+    .wallet-buttons {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      margin-top: 25px;
+      flex-wrap: wrap;
+    }
+
+    .wallet-btn {
+      padding: 15px 25px;
+      border-radius: 8px;
+      cursor: pointer;
+      border: none;
+      font-weight: 600;
+      font-size: 16px;
+      transition: all 0.2s ease;
+      min-width: 160px;
+      min-height: 50px;
+    }
+
+    .copy-btn {
+      background-color: #1f6feb;
+      color: white;
+      border: 1px solid #1f6feb;
+    }
+
+    .copy-btn:hover {
+      background-color: #2b7ff5;
+      box-shadow: 0 2px 8px rgba(31, 111, 235, 0.3);
+    }
+
+    .copy-btn.copied {
+      background-color: #238636;
+      border-color: #238636;
+    }
+
+    .history-section {
+      background: #161b22;
+      padding: 25px;
+      border: 1px solid #30363d;
+      border-radius: 10px;
+      margin-top: 25px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .history-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 16px;
+    }
+
+    .history-table th {
+      text-align: left;
+      padding: 15px;
+      border-bottom: 1px solid #30363d;
+      color: #58a6ff;
+      font-weight: 600;
+      font-size: 15px;
+    }
+
+    .history-table td {
+      padding: 15px;
+      border-bottom: 1px solid #21262d;
+      color: #f0f6fc;
+    }
+
+    .empty-history {
+      text-align: center;
+      padding: 40px 20px;
+      color: #8b949e;
+      font-size: 16px;
+    }
+
+    .network-info {
+      color: #8b949e;
+      font-size: 15px;
+      margin-top: 10px;
+      text-align: center;
+    }
+
+    .withdraw-alert {
+      color: #f85149;
+      background: rgba(248, 81, 73, 0.1);
+      padding: 20px;
+      border-radius: 8px;
+      font-size: 16px;
+      margin-bottom: 25px;
+      border: 1px solid rgba(248, 81, 73, 0.3);
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .withdraw-form {
+      background: #161b22;
+      padding: 25px;
+      border-radius: 10px;
+      border: 1px solid #30363d;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      margin-bottom: 30px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .withdraw-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 25px;
+      flex-wrap: wrap;
+    }
+
+    .withdraw-tab {
+      padding: 15px 25px;
+      background: #21262d;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      min-height: 44px;
+      flex: 1;
+      min-width: 160px;
+      text-align: center;
+    }
+
+    .withdraw-tab:hover {
+      background: #30363d;
+    }
+
+    .withdraw-tab.active {
+      background: #1f6feb;
+      color: white;
+      border-color: #1f6feb;
+      box-shadow: 0 2px 8px rgba(31, 111, 235, 0.3);
+    }
+
+    .form-section {
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .form-section.active {
+      display: block;
+    }
+
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 25px;
+    }
+
+    .form-group label {
+      margin-bottom: 10px;
+      font-weight: 500;
+      color: #8b949e;
+      font-size: 16px;
+    }
+
+    .form-group input {
+      padding: 15px;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      background: #0d1117;
+      color: #f0f6fc;
+      font-size: 16px;
+      transition: border-color 0.2s;
+      min-height: 50px;
+    }
+
+    .submit-btn {
+      background: #1f6feb;
+      color: white;
+      padding: 18px 25px;
+      border: none;
+      border-radius: 8px;
+      font-size: 18px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      width: 100%;
+      margin-top: 20px;
+      min-height: 55px;
+    }
+
+    .balance-display {
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 25px;
+      margin-bottom: 25px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .balance-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 0;
+      border-bottom: 1px solid #21262d;
+      font-size: 16px;
+    }
+
+    .balance-row:last-child {
+      border-bottom: none;
+    }
+
+    .balance-label {
+      color: #8b949e;
+      font-size: 16px;
+    }
+
+    .balance-amount {
+      font-size: 18px;
+      font-weight: 600;
+      color: #f0f6fc;
+    }
+
+    .total-balance {
+      background: linear-gradient(135deg, #1f6feb, #2b7ff5);
+      border-radius: 12px;
+      padding: 30px;
+      margin-bottom: 25px;
+      text-align: center;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .total-balance-label {
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 18px;
+      margin-bottom: 15px;
+    }
+
+    .total-balance-amount {
+      font-size: 32px;
+      font-weight: 700;
+      color: white;
+    }
+
+    .balance-currency {
+      font-size: 18px;
+      color: rgba(255, 255, 255, 0.8);
+      margin-left: 10px;
+    }
+
+    .available-balance {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 25px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .available-balance-label {
+      color: #8b949e;
+      font-size: 16px;
+      margin-bottom: 10px;
+    }
+
+    .available-balance-amount {
+      font-size: 22px;
+      font-weight: 600;
+      color: #f0f6fc;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.8);
+      display: none;
+      z-index: 10000;
+      padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    }
+
+    .modal-overlay.active {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal {
+      background: #161b22;
+      border-radius: 16px;
+      border: 1px solid #30363d;
+      max-width: 500px;
+      width: calc(100% - 40px);
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+      animation: modalAppear 0.3s ease;
+      margin: 20px;
+    }
+
+    .modal-header {
+      padding: 25px;
+      border-bottom: 1px solid #30363d;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .modal-header h3 {
+      color: #f0f6fc;
+      font-size: 20px;
+      font-weight: 600;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      color: #8b949e;
+      font-size: 28px;
+      cursor: pointer;
+      padding: 0;
+      width: 44px;
+      height: 44px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 6px;
+      transition: background-color 0.2s;
+    }
+
+    .modal-body {
+      padding: 25px;
+    }
+
+    .modal-message {
+      color: #c9d1d9;
+      line-height: 1.6;
+      margin-bottom: 20px;
+      font-size: 16px;
+    }
+
+    .commission-warning {
+      background: rgba(248, 81, 73, 0.1);
+      border: 1px solid rgba(248, 81, 73, 0.3);
+      border-radius: 10px;
+      padding: 20px;
+      margin: 20px 0;
+    }
+
+    .commission-list {
+      list-style: none;
+      margin: 20px 0;
+      padding: 0;
+    }
+
+    .commission-list li {
+      padding: 8px 0;
+      color: #8b949e;
+      font-size: 15px;
+    }
+
+    .commission-total {
+      font-weight: 600;
+      color: #f85149 !important;
+      font-size: 17px;
+      margin-top: 15px;
+      padding-top: 15px;
+      border-top: 1px solid #30363d;
+    }
+
+    .modal-footer {
+      padding: 25px;
+      border-top: 1px solid #30363d;
+      display: flex;
+      gap: 15px;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+    }
+
+    .modal-btn {
+      padding: 15px 25px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      min-height: 50px;
+      flex: 1;
+      min-width: 120px;
+    }
+
+    .modal-btn-cancel {
+      background: #21262d;
+      color: #c9d1d9;
+      border: 1px solid #30363d;
+    }
+
+    .modal-btn-confirm {
+      background: #1f6feb;
+      color: white;
+    }
+
+    .checkbox-container {
+      display: flex;
+      align-items: flex-start;
+      gap: 15px;
+      margin: 25px 0;
+      padding: 20px;
+      background: rgba(248, 81, 73, 0.05);
+      border-radius: 10px;
+      border: 1px solid rgba(248, 81, 73, 0.2);
+    }
+
+    .support-message {
+      text-align: center;
+      padding: 25px 0;
+    }
+
+    .toast {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background-color: #f85149;
+      color: white;
+      padding: 20px 30px;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 500;
+      z-index: 9999;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+      display: none;
+      animation: slideIn 0.3s ease;
+      max-width: calc(100% - 40px);
+    }
+
+    .success-checkmark {
+      text-align: center;
+      margin: 25px 0;
+    }
+
+    .check-icon {
+      width: 80px;
+      height: 80px;
+      position: relative;
+      border-radius: 50%;
+      box-sizing: content-box;
+      border: 4px solid #16c784;
+      margin: 0 auto;
+    }
+
+    .check-icon::before {
+      top: 3px;
+      left: -2px;
+      width: 30px;
+      transform-origin: 100% 50%;
+      border-radius: 100px 0 0 100px;
+    }
+
+    .check-icon::after {
+      top: 0;
+      left: 30px;
+      width: 60px;
+      transform-origin: 0 50%;
+      border-radius: 0 100px 100px 0;
+      animation: rotate-circle 4.25s ease-in;
+    }
+
+    .check-icon::before, .check-icon::after {
+      content: '';
+      height: 100px;
+      position: absolute;
+      background: #161b22;
+      transform: rotate(-45deg);
+    }
+
+    .icon-line {
+      height: 5px;
+      background-color: #16c784;
+      display: block;
+      border-radius: 2px;
+      position: absolute;
+      z-index: 10;
+    }
+
+    .icon-line.line-tip {
+      top: 46px;
+      left: 14px;
+      width: 25px;
+      transform: rotate(45deg);
+      animation: icon-line-tip 0.75s;
+    }
+
+    .icon-line.line-long {
+      top: 38px;
+      right: 8px;
+      width: 47px;
+      transform: rotate(-45deg);
+      animation: icon-line-long 0.75s;
+    }
+
+    .icon-circle {
+      top: -4px;
+      left: -4px;
+      z-index: 10;
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      position: absolute;
+      box-sizing: content-box;
+      border: 4px solid rgba(22, 199, 132, 0.5);
+    }
+
+    .icon-fix {
+      top: 8px;
+      width: 5px;
+      left: 26px;
+      z-index: 1;
+      height: 85px;
+      position: absolute;
+      transform: rotate(-45deg);
+      background-color: #161b22;
+    }
+
+    .normal-withdraw-info {
+      background: rgba(22, 199, 132, 0.1);
+      border: 1px solid rgba(22, 199, 132, 0.3);
+      border-radius: 10px;
+      padding: 20px;
+      margin: 20px 0;
+    }
+
+    .withdraw-details {
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 10px;
+      padding: 20px;
+      margin: 20px 0;
+    }
+
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      margin: 12px 0;
+      font-size: 16px;
+    }
+
+    .fee-amount {
+      color: #8b949e;
+    }
+
+    .receive-amount {
+      color: #16c784;
+      font-weight: bold;
+    }
+
+    .countdown-timer {
+      text-align: center;
+      font-size: 18px;
+      font-weight: bold;
+      color: #1f6feb;
+      margin: 20px 0;
+    }
+
+    .position-status {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 5px;
+      margin-left: 15px;
+      min-width: 120px;
+    }
+
+    .status-badge {
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-weight: 500;
+    }
+
+    .status-processing {
+      background: rgba(255, 170, 0, 0.15);
+      color: #ffaa00;
+      border: 1px solid rgba(255, 170, 0, 0.3);
+    }
+
+    .status-closed {
+      background: rgba(22, 199, 132, 0.15);
+      color: #16c784;
+      border: 1px solid rgba(22, 199, 132, 0.3);
+    }
+
+    .position-pnl {
+      font-size: 13px;
+      font-weight: 500;
+    }
+
+    .pnl-positive {
+      color: #16c784;
+    }
+
+    .pnl-negative {
+      color: #ea3943;
+    }
+
+    @keyframes rotate-circle {
+      0% { transform: rotate(-45deg); }
+      5% { transform: rotate(-45deg); }
+      12% { transform: rotate(-405deg); }
+      100% { transform: rotate(-405deg); }
+    }
+
+    @keyframes icon-line-tip {
+      0% { width: 0; left: 1px; top: 19px; }
+      54% { width: 0; left: 1px; top: 19px; }
+      70% { width: 50px; left: -8px; top: 37px; }
+      84% { width: 17px; left: 21px; top: 48px; }
+      100% { width: 25px; left: 14px; top: 45px; }
+    }
+
+    @keyframes icon-line-long {
+      0% { width: 0; right: 46px; top: 54px; }
+      65% { width: 0; right: 46px; top: 54px; }
+      84% { width: 55px; right: 0px; top: 35px; }
+      100% { width: 47px; right: 8px; top: 38px; }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes slideIn {
+      from { transform: translateX(100%); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    @keyframes modalAppear {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .mobile-bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      width: 100%;
+      background: #161b22;
+      border-top: 1px solid #30363d;
+      display: flex;
+      justify-content: space-around;
+      padding: 12px 0 calc(12px + env(safe-area-inset-bottom));
+      z-index: 1000;
+      box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    .mobile-nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: #8b949e;
+      font-size: 12px;
+      cursor: pointer;
+      padding: 8px;
+      border-radius: 8px;
+      transition: all 0.2s;
+      min-width: 60px;
+      flex: 1;
+      max-width: 90px;
+      min-height: 44px;
+    }
+
+    .mobile-nav-item.active {
+      color: #1f6feb;
+      background: rgba(31, 111, 235, 0.1);
+    }
+
+    .mobile-nav-item img {
+      width: 24px;
+      height: 24px;
+      margin-bottom: 4px;
+      filter: brightness(0.8);
+    }
+
+    .mobile-nav-item.active img {
+      filter: brightness(1);
+    }
+
+    .request-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      margin-top: 25px;
+    }
+
+    .support-link-btn {
+      background: #1f6feb;
+      color: white;
+      padding: 18px;
+      border-radius: 8px;
+      text-decoration: none;
+      text-align: center;
+      font-weight: 500;
+      transition: background-color 0.2s;
+      font-size: 16px;
+      min-height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .support-link-btn:hover {
+      background: #2b7ff5;
+    }
+
+    .cancel-withdraw-btn {
+      background: #21262d;
+      color: #c9d1d9;
+      padding: 18px;
+      border-radius: 8px;
+      border: 1px solid #30363d;
+      text-align: center;
+      cursor: pointer;
+      font-weight: 500;
+      transition: background-color 0.2s;
+      font-size: 16px;
+      min-height: 50px;
+    }
+
+    .cancel-withdraw-btn:hover {
+      background: #30363d;
+    }
+
+    .chart-header {
+      padding: 15px;
+      background: #161b22;
+      border-bottom: 1px solid #30363d;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .company-title {
+      font-weight: bold;
+      font-size: 16px;
+    }
+
+    .chart-time {
+      font-size: 14px;
+      color: #8b949e;
+      margin-top: 5px;
+    }
+
+    .positions-toggle-btn {
+      width: 100%;
+      background: #161b22;
+      border: 1px solid #30363d;
+      color: #c9d1d9;
+      padding: 15px;
+      margin: 10px 0 0 0;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 500;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.2s ease;
+      min-height: 44px;
+    }
+
+    .positions-toggle-btn:hover {
+      background: #21262d;
+    }
+
+    .positions-toggle-btn.expanded {
+      border-radius: 8px 8px 0 0;
+      border-bottom: none;
+    }
+
+    .positions-toggle-btn::after {
+      content: "▼";
+      font-size: 14px;
+      transition: transform 0.3s;
+    }
+
+    .positions-toggle-btn.expanded::after {
+      transform: rotate(180deg);
+    }
+
+    .mobile-positions-container {
+      display: none;
+      max-height: 0;
+      overflow: hidden;
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-top: none;
+      border-radius: 0 0 8px 8px;
+      transition: max-height 0.3s ease;
+      margin-bottom: 15px;
+    }
+
+    .mobile-positions-container.expanded {
+      display: block;
+      max-height: 400px;
+      overflow-y: auto;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .desktop-positions-container {
+      background: #0d1117;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      margin-top: 15px;
+      flex: 1;
+      min-height: 200px;
+      max-height: calc(100vh - 300px);
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .positions-header {
+      padding: 15px;
+      background: #161b22;
+      border-bottom: 1px solid #30363d;
+      font-weight: bold;
+      font-size: 16px;
+      border-radius: 8px 8px 0 0;
+    }
+
+    .positions-content {
+      flex: 1;
+      overflow-y: auto;
+    }
+
+    .trade-main {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
+    }
+
+    .empty-positions {
+      padding: 30px;
+      text-align: center;
+      color: #8b949e;
+      font-size: 16px;
+    }
+
+    .category-tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+      border-bottom: 1px solid #30363d;
+      padding-bottom: 10px;
+    }
+
+    .category-tab {
+      padding: 10px 20px;
+      background: #21262d;
+      border: 1px solid #30363d;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+
+    .category-tab:hover {
+      background: #30363d;
+    }
+
+    .category-tab.active {
+      background: #1f6feb;
+      border-color: #1f6feb;
+      color: white;
+    }
+
+    .category-content {
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .category-content.active {
+      display: block;
+    }
+
+    /* Бейдж для расширенной версии */
+    .pro-badge {
+      display: inline-block;
+      background: linear-gradient(90deg, #ffd700, #ffa500);
+      color: #000;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+      margin-left: 10px;
+    }
+
+    .asset-version-info {
+      background: rgba(31, 111, 235, 0.1);
+      border: 1px solid #1f6feb;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 20px;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    @media (min-width: 768px) {
+      .layout {
+        flex-direction: row;
+        height: calc(100vh - 60px);
+      }
+      
+      .sidebar {
+        flex-direction: column;
+        justify-content: flex-start;
+        width: 80px;
+        height: calc(100vh - 60px);
+        padding-top: 20px;
+        gap: 30px;
+        border-right: 1px solid #30363d;
+        border-bottom: none;
+        top: 60px;
+      }
+      
+      .market-column {
+        display: flex;
+        width: 280px;
+        height: calc(100vh - 60px);
+      }
+      
+      .deal-row {
+        flex-direction: row;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 20px;
+      }
+      
+      .deal-column {
+        min-width: 180px;
+      }
+      
+      .flex-space {
+        flex-direction: row;
+        gap: 4%;
+        flex-wrap: wrap;
+      }
+
+      .trade-layout {
+        display: flex;
+        gap: 20px;
+        height: 100%;
+        min-height: 0;
+      }
+
+      .trade-main {
+        flex: 2;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+      }
+
+      .trade-terminal {
+        width: 350px;
+        min-height: 0;
+      }
+
+      .chart-section {
+        height: 45vh;
+        min-height: 0;
+        flex-shrink: 0;
+      }
+
+      .positions-toggle-btn,
+      .mobile-positions-container {
+        display: none;
+      }
+
+      .mobile-bottom-nav {
+        display: none;
+      }
+
+      .desktop-positions-container {
+        display: flex;
+        margin-top: 10px;
+      }
+    }
+
+    @media (max-width: 767px) {
+      .main-container {
+        flex-direction: column;
+      }
+
+      .market-column {
+        display: none;
+      }
+
+      .layout {
+        flex-direction: column;
+        height: auto;
+      }
+
+      .header-bar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        z-index: 1000;
+        padding: 10px max(15px, env(safe-area-inset-right));
+        padding-left: max(15px, env(safe-area-inset-left));
+      }
+
+      .sidebar {
+        display: none;
+      }
+
+      .page-content {
+        margin-top: 60px;
+        margin-bottom: calc(80px + env(safe-area-inset-bottom));
+        padding: max(15px, env(safe-area-inset-left));
+        padding-bottom: 20px;
+        width: 100%;
+        box-sizing: border-box;
+      }
+
+      .chart-section {
+        height: 40vh;
+        min-height: 250px;
+        margin-bottom: 15px;
+        display: flex;
+        flex-direction: column;
+        flex-shrink: 0;
+      }
+
+      .chart-section iframe {
+        min-height: 200px;
+        flex: 1;
+      }
+
+      .trade-layout {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        padding-bottom: 20px;
+        width: 100%;
+        box-sizing: border-box;
+      }
+
+      .trade-main {
+        order: 1;
+        width: 100%;
+      }
+
+      .trade-terminal {
+        order: 2;
+        margin-top: 20px;
+        transition: transform 0.3s ease, margin-top 0.3s ease;
+        width: 100%;
+      }
+
+      .trade-terminal.shifted {
+        transform: translateY(120px);
+        margin-top: 140px;
+      }
+
+      .desktop-positions-container {
+        display: none;
+      }
+
+      .mobile-bottom-nav {
+        display: flex;
+      }
+
+      .wallet-tabs {
+        gap: 8px;
+      }
+
+      .wallet-tab {
+        min-width: calc(50% - 4px);
+        padding: 12px 8px;
+        font-size: 14px;
+      }
+
+      .withdraw-tabs {
+        gap: 8px;
+      }
+
+      .withdraw-tab {
+        min-width: calc(50% - 4px);
+        padding: 12px 8px;
+        font-size: 14px;
+      }
+
+      .modal-btn {
+        min-width: calc(50% - 8px);
+      }
+      
+      .position-status {
+        min-width: 100px;
+      }
+      
+      .account-blocked-toast {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        max-width: none;
+        font-size: 13px;
+        padding: 12px 20px;
+      }
+
+      .category-tabs {
+        gap: 5px;
+        overflow-x: auto;
+        padding-bottom: 5px;
+      }
+
+      .category-tab {
+        padding: 8px 12px;
+        font-size: 12px;
+        white-space: nowrap;
+      }
+      
+      .pro-badge {
+        font-size: 10px;
+        padding: 2px 8px;
+      }
+    }
+
+    @media (max-width: 360px) {
+      .trade-terminal.shifted {
+        transform: translateY(100px);
+        margin-top: 120px;
+      }
+      
+      .mobile-nav-item {
+        padding: 6px;
+        font-size: 11px;
+      }
+      
+      .mobile-nav-item img {
+        width: 22px;
+        height: 22px;
+      }
+
+      .wallet-tab {
+        min-width: 100%;
+      }
+
+      .withdraw-tab {
+        min-width: 100%;
+      }
+
+      .modal-btn {
+        min-width: 100%;
+      }
+      
+      .position-status {
+        min-width: 80px;
+      }
+      
+      .account-blocked-toast {
+        font-size: 12px;
+        padding: 10px 15px;
+      }
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Экран: Тест отключен -->
-        <div id="screen-disabled" class="screen test-disabled">
-            <div class="icon">⛔</div>
-            <h2>Тест временно отключен</h2>
-            <p>Тестовое задание в данный момент недоступно для прохождения.</p>
-            <p>Обратитесь к вашему тим-лидеру для получения доступа.</p>
+<!-- Уведомление о блокировке аккаунта -->
+<div class="account-blocked-toast" id="accountBlockedToast">
+  <button class="close-btn" onclick="closeBlockedToast()">×</button>
+  <div class="message">⚠️ Ваш счет заморожен. Информация отправлена на вашу почту.</div>
+</div>
+
+<!-- Форма входа -->
+<div id="loginContainer" class="login-container">
+  <div class="login-form">
+    <h2>Вход в терминал</h2>
+    <input type="text" id="loginEmail" placeholder="Логин" required>
+    <input type="password" id="loginPassword" placeholder="Пароль" required>
+    <button id="loginButton">Войти</button>
+    <div id="loginError" class="login-error">Неверный логин или пароль</div>
+    <div class="register-link">
+      Нет аккаунта? <a href="https://tradegalardro.com/register/" target="_blank">Зарегистрироваться</a>
+    </div>
+  </div>
+</div>
+
+<!-- Основной контент (скрыт до входа) -->
+<div id="mainContent" style="display: none;">
+  <!-- Хедер с балансом -->
+  <div class="header-bar">
+    <div class="balance-info">
+      <div class="balance-item">
+        <span class="balance-label">Баланс:</span>
+        <span class="balance-value" id="balanceValue">0.00 USDT</span>
+      </div>
+      <div class="balance-item">
+        <span class="balance-label">Версия:</span>
+        <span class="balance-value" id="versionBadge"></span>
+      </div>
+      <div class="balance-item">
+        <span class="balance-label"></span>
+        <span class="balance-value positive" id="pnlValue"></span>
+      </div>
+    </div>
+    <div class="user-menu">
+      <span id="userLevel">Уровень: 1</span>
+      <button class="menu-toggle" onclick="toggleMenu()">☰</button>
+      <div class="dropdown-menu" id="dropdownMenu">
+        <div class="menu-item" onclick="showPage('trade')">
+          <img src="https://img.icons8.com/ios-filled/24/ffffff/home.png" alt="" />
+          Торговля
         </div>
-        
-        <!-- Экран: Ввод ника -->
-        <div id="screen-nickname" class="screen">
-            <div class="header">
-                <div class="logo">
-                    <span>📊</span> ОЦЕНКА ЗНАНИЙ
-                </div>
-                <div class="user-info">Шаг 1 из 10</div>
-            </div>
-            
-            <h1>Тест для сотрудников</h1>
-            <p style="text-align: center; margin-bottom: 35px; color: #b7bdc6; font-size: 17px; line-height: 1.6;">
-                Для начала теста введите ваш никнейм из Telegram.<br>
-                Тест состоит из 8 вопросов с ограничением по времени.
-            </p>
-            <input type="text" id="nickname" placeholder="Ваш ник в Telegram" maxlength="50">
-            <button id="start-btn" class="btn">
-                <span class="loader" style="display: none;"></span>
-                Начать тестирование
-            </button>
+        <div class="menu-item" onclick="showPage('profile')">
+          <img src="https://img.icons8.com/ios-filled/24/ffffff/user-male-circle.png" alt="" />
+          Профиль
         </div>
-        
-        <!-- Экран: Подготовка -->
-        <div id="screen-prepare" class="screen">
-            <div class="header">
-                <div class="logo">
-                    <span>⏱️</span> ПОДГОТОВКА
-                </div>
-                <div class="user-info" id="current-user"></div>
-            </div>
-            
-            <div class="warning">
-                <h3>Важная информация</h3>
-                <p>На каждый вопрос дается <strong>ровно 40 секунд</strong>.</p>
-                <p>Если не успеете ответить за отведенное время, ответ засчитывается как <strong>неправильный</strong>.</p>
-                <p>Всего вопросов: <strong>8</strong>. После начала теста остановить его <strong>невозможно</strong>.</p>
-            </div>
-            
-            <div style="text-align: center; margin-bottom: 20px;">
-                <div style="color: #b7bdc6; font-size: 16px; margin-bottom: 10px;">Тест начнется через:</div>
-                <div id="countdown" class="countdown">15</div>
-            </div>
-            
-            <div style="color: #5e6673; font-size: 14px; text-align: center;">
-                Приготовьтесь отвечать на вопросы
-            </div>
+        <div class="menu-item" onclick="showPage('deposit')">
+          <img src="https://img.icons8.com/ios-filled/24/ffffff/money-transfer.png" alt="" />
+          Депозит
         </div>
-        
-        <!-- Вопросы 1-8 -->
-        <div id="screen-q1" class="screen">
-            <div class="header">
-                <div class="logo">
-                    <span>❓</span> ВОПРОС 1/8
-                </div>
-                <div class="user-info" id="timer1">40 сек</div>
-            </div>
-            
-            <div class="progress">
-                <div class="progress-text">1/8</div>
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: 12.5%"></div>
-                </div>
-                <div class="progress-text">13%</div>
-            </div>
-            
-            <div class="question">
-                <div class="question-text">Аналитик - это:</div>
-                <div class="options">
-                    <div class="option" data-value="option1">Друг девушки, который хорошо разбирается в крипте и ведет закрытый канал с сигналами</div>
-                    <div class="option" data-value="option2">Финансовый аналитик, работающий в крупной компании, который не дает сигналы никому, кроме девушки и ее отца</div>
-                </div>
-            </div>
-            <button id="next1-btn" class="btn" disabled>Далее →</button>
+        <div class="menu-item" onclick="showPage('withdraw')">
+          <img src="https://img.icons8.com/ios-filled/24/ffffff/export.png" alt="" />
+          Вывод
         </div>
-        
-        <div id="screen-q2" class="screen">
-            <div class="header">
-                <div class="logo">
-                    <span>❓</span> ВОПРОС 2/8
-                </div>
-                <div class="user-info" id="timer2">40 сек</div>
-            </div>
-            
-            <div class="progress">
-                <div class="progress-text">2/8</div>
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: 25%"></div>
-                </div>
-                <div class="progress-text">25%</div>
-            </div>
-            
-            <div class="question">
-                <div class="question-text">Кого вы возьмёте в работу?</div>
-                <div class="options">
-                    <div class="option" data-value="option1">Александр, 31 год, гражданство РФ, родился в Санкт-Петербурге, работает курьером в Ozon</div>
-                    <div class="option" data-value="option2">Наиль, 29 лет, гражданство РФ, родился в Казахстане, опытный специалист в сфере продаж, хорошо зарабатывает</div>
-                    <div class="option" data-value="option3">Никого</div>
-                </div>
-            </div>
-            <button id="next2-btn" class="btn" disabled>Далее →</button>
+        <div class="menu-item" onclick="logout()">
+          <img src="https://img.icons8.com/ios-filled/24/ffffff/exit.png" alt="" />
+          Выйти
         </div>
-        
-        <div id="screen-q3" class="screen">
-            <div class="header">
-                <div class="logo">
-                    <span>❓</span> ВОПРОС 3/8
-                </div>
-                <div class="user-info" id="timer3">40 сек</div>
-            </div>
-            
-            <div class="progress">
-                <div class="progress-text">3/8</div>
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: 37.5%"></div>
-                </div>
-                <div class="progress-text">38%</div>
-            </div>
-            
-            <div class="question">
-                <div class="question-text">Индикаторный вброс делается с целью:</div>
-                <div class="options">
-                    <div class="option" data-value="option1">Увидеть реакцию клиента на тот факт, что девушка зарабатывает на инвестициях</div>
-                    <div class="option" data-value="option2">Рассказать клиенту, как девушка работает с аналитиком, чтобы у клиента было понимание сферы на момент предложения</div>
-                </div>
-            </div>
-            <button id="next3-btn" class="btn" disabled>Далее →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Основной контейнер -->
+  <div class="main-container">
+    <!-- Левая колонка с рыночными данными -->
+    <div class="market-column">
+      <!-- Список избранных активов -->
+      <div class="watchlist-section">
+        <div class="section-title">
+          <span>Избранные активы</span>
+          <span id="watchlistBadge"></span>
         </div>
-        
-        <div id="screen-q4" class="screen">
-            <div class="header">
-                <div class="logo">
-                    <span>❓</span> ВОПРОС 4/8
-                </div>
-                <div class="user-info" id="timer4">40 сек</div>
-            </div>
-            
-            <div class="progress">
-                <div class="progress-text">4/8</div>
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: 50%"></div>
-                </div>
-                <div class="progress-text">50%</div>
-            </div>
-            
-            <div class="question">
-                <div class="question-text">Сколько вбросов должно быть за весь диалог?</div>
-                <div class="options">
-                    <div class="option" data-value="option1">2-3 вброса</div>
-                    <div class="option" data-value="option2">1 вброс</div>
-                    <div class="option" data-value="option3">4-6 вбросов</div>
-                </div>
-            </div>
-            <button id="next4-btn" class="btn" disabled>Далее →</button>
+        <div id="watchlist">
+          <!-- Активы будут добавлены через JavaScript -->
         </div>
-        
-        <div id="screen-q5" class="screen">
-            <div class="header">
-                <div class="logo">
-                    <span>❓</span> ВОПРОС 5/8
-                </div>
-                <div class="user-info" id="timer5">40 сек</div>
-            </div>
-            
-            <div class="progress">
-                <div class="progress-text">5/8</div>
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: 62.5%"></div>
-                </div>
-                <div class="progress-text">63%</div>
-            </div>
-            
-            <div class="question">
-                <div class="question-text">Оптимальное количество "прогревов" до момента предложения:</div>
-                <div class="options">
-                    <div class="option" data-value="option1">3 раза</div>
-                    <div class="option" data-value="option2">1-2 раза</div>
-                    <div class="option" data-value="option3">5 и более раз</div>
-                </div>
-            </div>
-            <button id="next5-btn" class="btn" disabled>Далее →</button>
+      </div>
+
+      <!-- Быстрые кнопки -->
+      <div class="quick-buttons-section">
+        <div class="section-title">Быстрый доступ</div>
+        <div class="quick-buttons" id="quickButtons">
+          <!-- Быстрые кнопки будут добавлены через JavaScript -->
         </div>
-        
-        <div id="screen-q6" class="screen">
-            <div class="header">
-                <div class="logo">
-                    <span>❓</span> ВОПРОС 6/8
-                </div>
-                <div class="user-info" id="timer6">40 сек</div>
-            </div>
-            
-            <div class="progress">
-                <div class="progress-text">6/8</div>
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: 75%"></div>
-                </div>
-                <div class="progress-text">75%</div>
-            </div>
-            
-            <div class="question">
-                <div class="question-text">Возьмете ли вы клиента, который сидит на сайте знакомств больше месяца, но инвестиции ему еще не предлагали?</div>
-                <div class="options">
-                    <div class="option" data-value="option1">Да</div>
-                    <div class="option" data-value="option2">Нет</div>
-                </div>
-            </div>
-            <button id="next6-btn" class="btn" disabled>Далее →</button>
+      </div>
+
+      <!-- Обзор портфеля -->
+      <div class="portfolio-section">
+        <div class="section-title">Обзор портфеля</div>
+        <div class="portfolio-item">
+          <span>Акции</span>
+          <span>65%</span>
         </div>
-        
-        <div id="screen-q7" class="screen">
-            <div class="header">
-                <div class="logo">
-                    <span>❓</span> ВОПРОС 7/8
-                </div>
-                <div class="user-info" id="timer7">40 сек</div>
-            </div>
-            
-            <div class="progress">
-                <div class="progress-text">7/8</div>
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: 87.5%"></div>
-                </div>
-                <div class="progress-text">88%</div>
-            </div>
-            
-            <div class="question">
-                <div class="question-text">Когда делается индикаторный вброс?</div>
-                <div class="options">
-                    <div class="option" data-value="option1">На второй день общения</div>
-                    <div class="option" data-value="option2">В первый день общения, в первые 2 часа ведения диалога</div>
-                    <div class="option" data-value="option3">После предложения</div>
-                </div>
-            </div>
-            <button id="next7-btn" class="btn" disabled>Далее →</button>
+        <div class="portfolio-bar">
+          <div class="portfolio-fill" style="width: 65%; background: #1f6feb;"></div>
         </div>
-        
-        <div id="screen-q8" class="screen">
-            <div class="header">
-                <div class="logo">
-                    <span>❓</span> ВОПРОС 8/8
-                </div>
-                <div class="user-info" id="timer8">40 сек</div>
-            </div>
-            
-            <div class="progress">
-                <div class="progress-text">8/8</div>
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: 100%"></div>
-                </div>
-                <div class="progress-text">100%</div>
-            </div>
-            
-            <div class="question">
-                <div class="question-text">Можно ли передать клиента с хорошей официальной зарплатой, но с просрочками по кредитам?</div>
-                <div class="options">
-                    <div class="option" data-value="option1">Да</div>
-                    <div class="option" data-value="option2">Нет</div>
-                </div>
-            </div>
-            <button id="next8-btn" class="btn" disabled>Завершить тест</button>
+        <div class="portfolio-item">
+          <span>Крипто</span>
+          <span>25%</span>
         </div>
-        
-        <!-- Экран: Результат -->
-        <div id="screen-result" class="screen">
-            <div class="header">
-                <div class="logo">
-                    <span>✅</span> РЕЗУЛЬТАТ
-                </div>
-                <div class="user-info">Завершено</div>
-            </div>
-            
-            <h1>Тестирование завершено!</h1>
-            <div class="result">
-                <h3>Спасибо за участие!</h3>
-                <p>Ваши ответы успешно сохранены в системе.</p>
-                <p>Результаты будут проверены администратором.</p>
-                <button id="restart-btn" class="btn-secondary" style="margin-top: 25px;">
-                    Пройти тест заново
-                </button>
-            </div>
+        <div class="portfolio-bar">
+          <div class="portfolio-fill" style="width: 25%; background: #16c784;"></div>
         </div>
+        <div class="portfolio-item">
+          <span>Фьючерсы</span>
+          <span>10%</span>
+        </div>
+        <div class="portfolio-bar">
+          <div class="portfolio-fill" style="width: 10%; background: #ea3943;"></div>
+        </div>
+      </div>
+
+      <!-- Рыночные данные -->
+      <div class="market-data-section">
+        <div class="section-title">Рыночные данные</div>
+        <div class="market-stats">
+          <div class="stat-item">
+            <div class="stat-value" id="btcDominance">42.8%</div>
+            <div class="stat-label">Доминирование BTC</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" id="fearGreed">72</div>
+            <div class="stat-label">Индекс страха</div>
+          </div>
+        </div>
+        <div class="market-stats">
+          <div class="stat-item">
+            <div class="stat-value" id="totalMarketCap">2.11T</div>
+            <div class="stat-label">Капитализация</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-value" id="volume24h">78.38B</div>
+            <div class="stat-label">Объем 24ч</div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <script>
-        // Конфигурация Supabase
-        const SUPABASE_URL = 'https://wkukgnkfbxgpvlraczeu.supabase.co';
-        const SUPABASE_KEY = 'sb_publishable_11WBFNEcbspv1yDyfxq7sQ_Nl51ew5i';
-        
-        // Создаем клиент
-        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        
-        // ПРАВИЛЬНЫЕ ОТВЕТЫ
-        const CORRECT_ANSWERS = {
-            q1: 'option2', // Финансовый аналитик...
-            q2: 'option1', // Александр...
-            q3: 'option1', // Увидеть реакцию клиента...
-            q4: 'option1', // 2-3 вброса
-            q5: 'option1', // 3 раза
-            q6: 'option2', // Нет
-            q7: 'option2', // В первый день общения...
-            q8: 'option2'  // Нет
-        };
-        
-        // Переменные состояния
-        let currentScreen = null;
-        let nickname = '';
-        let answers = {
-            q1: null, q2: null, q3: null, q4: null,
-            q5: null, q6: null, q7: null, q8: null,
-            q1_time: 0, q2_time: 0, q3_time: 0, q4_time: 0,
-            q5_time: 0, q6_time: 0, q7_time: 0, q8_time: 0
-        };
-        
-        let countdownTimer = null;
-        let questionTimer = null;
-        let timeLeft = 15; // Изменено с 30 на 15 секунд
-        let questionTime = 40; // Изменено с 20 на 40 секунд
-        let currentQuestion = 1;
-        
-        // Элементы
-        const screens = {
-            disabled: document.getElementById('screen-disabled'),
-            nickname: document.getElementById('screen-nickname'),
-            prepare: document.getElementById('screen-prepare'),
-            q1: document.getElementById('screen-q1'),
-            q2: document.getElementById('screen-q2'),
-            q3: document.getElementById('screen-q3'),
-            q4: document.getElementById('screen-q4'),
-            q5: document.getElementById('screen-q5'),
-            q6: document.getElementById('screen-q6'),
-            q7: document.getElementById('screen-q7'),
-            q8: document.getElementById('screen-q8'),
-            result: document.getElementById('screen-result')
-        };
-        
-        // Инициализация
-        document.addEventListener('DOMContentLoaded', async () => {
-            console.log('🔧 Инициализация тестовой платформы...');
+    <!-- Основной layout с меню и контентом -->
+    <div class="layout">
+      <!-- sidebar -->
+      <div class="sidebar">
+        <div class="sidebar-item active" onclick="showPage('trade')">
+          <img src="https://img.icons8.com/ios-filled/24/ffffff/home.png" alt="" />
+          <div>Торговля</div>
+        </div>
+        <div class="sidebar-item" onclick="showPage('profile')">
+          <img src="https://img.icons8.com/ios-filled/24/ffffff/user-male-circle.png" alt="" />
+          <div>Профиль</div>
+        </div>
+        <div class="sidebar-item" onclick="showPage('deposit')">
+          <img src="https://img.icons8.com/ios-filled/24/ffffff/money-transfer.png" alt="" />
+          <div>Депозит</div>
+        </div>
+        <div class="sidebar-item" onclick="showPage('withdraw')">
+          <img src="https://img.icons8.com/ios-filled/24/ffffff/export.png" alt="" />
+          <div>Вывод</div>
+        </div>
+      </div>
+
+      <!-- Контент страниц -->
+      
+      <!-- Страница Торговля -->
+      <div id="trade-page" class="page-content active">
+        <div class="trade-layout">
+          <div class="trade-main">
+            <div class="chart-section">
+              <div class="chart-header">
+                <div class="company-title" id="companyTitle">Apple Inc <span id="chartBadge"></span></div>
+                <div class="chart-time" id="currentTime">02:04:37 1024.83 | 02:04:33 – 03:04 (+0.01%)</div>
+              </div>
+              <iframe id="chartFrame" src="https://www.tradingview.com/widgetembed/?symbol=AAPL&interval=1&theme=dark"></iframe>
+            </div>
+
+            <!-- Кнопка для открытия истории позиций на мобильной -->
+            <button class="positions-toggle-btn" id="positionsToggleBtn" onclick="toggleMobilePositions()">
+              История позиций
+            </button>
             
-            try {
-                // Проверяем, активен ли тест
-                const { data: settings, error } = await supabaseClient
-                    .from('test_settings')
-                    .select('*')
-                    .single();
-                    
-                if (error) {
-                    console.error('Ошибка загрузки настроек:', error);
-                    showScreen('disabled');
-                    return;
-                }
-                
-                console.log('📊 Статус теста:', settings.is_active ? 'Активен' : 'Отключен');
-                
-                if (!settings.is_active) {
-                    showScreen('disabled');
-                    return;
-                }
-                
-                showScreen('nickname');
-                setupEventListeners();
-                
-            } catch (error) {
-                console.error('Ошибка инициализации:', error);
-                showScreen('disabled');
+            <!-- Контейнер для истории позиций в мобильной версии -->
+            <div id="mobilePositionsContainer" class="mobile-positions-container">
+              <!-- Позиции будут добавляться здесь -->
+              <div class="empty-positions">
+                Нет открытых позиций
+              </div>
+            </div>
+
+            <!-- Контейнер для истории позиций в десктопной версии -->
+            <div class="desktop-positions-container">
+              <div class="positions-header">История позиций</div>
+              <div class="positions-content" id="desktopPositionsContainer">
+                <!-- Позиции будут добавляться здесь -->
+                <div class="empty-positions">
+                  Нет открытых позиций
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="trade-terminal" id="tradeTerminal">
+            <div class="terminal-section">
+              <div class="title">Фьючерсный терминал <span id="terminalBadge"></span></div>
+              
+              <!-- Информация о версии -->
+              <div class="asset-version-info" id="versionInfo">
+                Загрузка версии активов...
+              </div>
+              
+              <!-- Вкладки категорий активов -->
+              <div class="category-tabs" id="categoryTabs">
+                <!-- Вкладки будут добавляться динамически -->
+              </div>
+              
+              <!-- Селектор компании в терминале -->
+              <div class="selector-container">
+                <button class="selector-button" onclick="toggleDropdown()">Текущий актив: <span id="selectedCompany">AAPL</span> ▼</button>
+                <div id="dropdown" class="dropdown">
+                  <input type="text" placeholder="Поиск..." oninput="filterCompanies(this.value)" />
+                  <div id="companyList"></div>
+                </div>
+              </div>
+              
+              <div class="market-info">
+                <div>
+                  <span>Цена:</span>
+                  <span id="currentPrice">${(Math.random() * 100 + 50).toFixed(2)} USD</span>
+                </div>
+                <div>
+                  <span>24h Объем:</span>
+                  <span id="dailyVolume">${(Math.random() * 5000 + 1000).toFixed(0)} BTC</span>
+                </div>
+                <div>
+                  <span>24h Изменение:</span>
+                  <span id="dailyChange" style="color: ${Math.random() > 0.5 ? '#16c784' : '#ea3943'}">
+                    ${(Math.random() * 10 - 5).toFixed(2)}%
+                  </span>
+                </div>
+              </div>
+              <select id="orderType">
+                <option>Лимитный</option>
+                <option selected>Рыночный</option>
+                <option>Триггер</option>
+              </select>
+              <div class="info-line">Режим активов: Один актив</div>
+              <div class="info-line" id="availableBalanceInfo">Дост.: 0.0000 USDT</div>
+              <input type="number" id="tradeSize" placeholder="Стоимость" value="0" min="0" step="10" />
+              <select id="tradeCurrency">
+                <option selected>USDT</option>
+                <option>BTC</option>
+              </select>
+              <label for="leverage">Кредитное плечо:</label>
+              <input type="range" id="leverage" min="1" max="100" value="20" oninput="updateLeverage(this.value)">
+              <div class="leverage-display" id="leverage-value">20x</div>
+              <div class="checkbox-group">
+                <label><input type="checkbox" id="tpLongCheckbox" onchange="toggleTPSL(this, 'tp-sl-long')"> Лонг т-п/с-л</label>
+                <label><input type="checkbox" id="tpShortCheckbox" onchange="toggleTPSL(this, 'tp-sl-short')"> Шорт т-п/с-л</label>
+              </div>
+              <div id="tp-sl-long" class="tp-sl">
+                <input type="number" id="tpLong" placeholder="Лонг Take Profit (USDT)" value="110">
+                <input type="number" id="slLong" placeholder="Лонг Stop Loss (USDT)" value="90">
+              </div>
+              <div id="tp-sl-short" class="tp-sl">
+                <input type="number" id="tpShort" placeholder="Шорт Take Profit (USDT)" value="90">
+                <input type="number" id="slShort" placeholder="Шорт Stop Loss (USDT)" value="110">
+              </div>
+              <div class="info-line">Ожид. цена ликвидации (лонг): —</div>
+              <div class="info-line">Ожид. цена ликвидации (шорт): —</div>
+              <div class="flex-space">
+                <button class="btn btn-long" id="longBtn">Открыть лонг</button>
+                <button class="btn btn-short" id="shortBtn">Открыть шорт</button>
+              </div>
+              <div class="info-line">Уровень комиссии</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Страница Профиль -->
+      <div id="profile-page" class="page-content">
+        <div class="profile-container">
+          <h2>Профиль пользователя</h2>
+          
+          <div class="user-id">
+            <span class="label">ID пользователя:</span>
+            <span class="value">J58syuYkou97dkdjk9yt</span>
+          </div>
+          
+          <div class="user-email">
+            <span class="label">Электронная почта:</span>
+            <span class="value" id="userEmail">user@example.com</span>
+          </div>
+          
+          <div class="profile-section">
+            <div class="profile-column">
+              <h3>Настройки профиля</h3>
+              
+              <div class="info-row">
+                <span class="label">Версия активов:</span>
+                <span class="value" id="profileVersion">Загрузка...</span>
+              </div>
+              
+              <div class="info-row">
+                <span class="label">Двухфакторная аутентификация</span>
+                <button class="profile-btn btn-secondary" id="enable2faBtn">Включить</button>
+              </div>
+              
+              <div class="kyc-message">
+                <p><strong>Верификация KYC</strong></p>
+                <p>Для полного доступа к функциям платформы требуется пройти верификацию личности.</p>
+                <p>После подачи заявки проверка займет до 48 часов.</p>
+              </div>
+              
+              <button class="profile-btn btn-kyc" id="kycBtn">Пройти верификацию KYC</button>
+              
+              <div class="info-row">
+                <span class="label">Статус верификации:</span>
+                <span class="status-badge status-pending">Частично верифицирован</span>
+              </div>
+            </div>
+            
+            <div class="profile-column">
+              <h3>Личная информация</h3>
+              <p style="color: #8b949e; margin-bottom: 15px; font-size: 14px;">Данные будут доступны после KYC верификации</p>
+              
+              <div class="info-row">
+                <span class="label">Имя:</span>
+                <span class="value">—</span>
+              </div>
+              
+              <div class="info-row">
+                <span class="label">Фамилия:</span>
+                <span class="value">—</span>
+              </div>
+              
+              <div class="info-row">
+                <span class="label">Страна:</span>
+                <span class="value">—</span>
+              </div>
+              
+              <div class="info-row">
+                <span class="label">Город:</span>
+                <span class="value">—</span>
+              </div>
+              
+              <div class="info-row">
+                <span class="label">Адрес:</span>
+                <span class="value">—</span>
+              </div>
+              
+              <div class="info-row">
+                <span class="label">Почтовый индекс:</span>
+                <span class="value">—</span>
+              </div>
+              
+              <div class="info-row">
+                <span class="label">Дата рождения:</span>
+                <span class="value">—</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="profile-section">
+            <div class="profile-column">
+              <h3>Подтверждение личности</h3>
+              
+              <div class="file-upload">
+                <label for="passport-front">Паспорт (главная страница)</label>
+                <input type="file" id="passport-front" class="file-input" />
+              </div>
+              
+              <div class="file-upload">
+                <label for="passport-selfie">Селфи с паспортом</label>
+                <input type="file" id="passport-selfie" class="file-input" />
+              </div>
+              
+              <div class="file-upload">
+                <label for="address-proof">Подтверждение адреса</label>
+                <input type="file" id="address-proof" class="file-input" />
+              </div>
+            </div>
+            
+            <div class="profile-column">
+              <h3>Платёжные данные</h3>
+              
+              <div class="file-upload">
+                <label for="dod">DoD документ</label>
+                <input type="file" id="dod" class="file-input" />
+              </div>
+              
+              <div class="file-upload">
+                <label for="utility-bill">Utility bill</label>
+                <input type="file" id="utility-bill" class="file-input" />
+              </div>
+              
+              <div class="file-upload">
+                <label for="wire-transfer">Wire transfer swift</label>
+                <input type="file" id="wire-transfer" class="file-input" />
+              </div>
+              
+              <div class="file-upload">
+                <label for="card-front">Лицевая сторона карты</label>
+                <input type="file" id="card-front" class="file-input" />
+              </div>
+              
+              <div class="file-upload">
+                <label for="card-back">Обратная сторона карты</label>
+                <input type="file" id="card-back" class="file-input" />
+              </div>
+              
+              <div class="file-upload">
+                <label for="payment-proof">Подтверждение платежа</label>
+                <input type="file" id="payment-proof" class="file-input" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Страница Депозит -->
+      <div id="deposit-page" class="page-content">
+        <h1>Баланс</h1>
+        
+        <!-- Главный баланс как на реальной бирже -->
+        <div class="total-balance">
+          <div class="total-balance-label">Общий баланс</div>
+          <div class="total-balance-amount" id="depositTotalBalance">0.00<span class="balance-currency">USDT</span></div>
+        </div>
+
+        <div class="available-balance">
+          <div class="available-balance-label">Доступно для торговли</div>
+          <div class="available-balance-amount" id="availableBalance">0.00 USDT</div>
+        </div>
+        
+        <div class="balance-info-section">
+          <div class="wallet-tabs">
+            <div class="wallet-tab" data-wallet="btc">BTC</div>
+            <div class="wallet-tab" data-wallet="eth">ETH</div>
+            <div class="wallet-tab active" data-wallet="usdt-erc20">USDT ERC20</div>
+            <div class="wallet-tab" data-wallet="usdt-trc20">USDT TRC20</div>
+          </div>
+          
+          <!-- Кошельки -->
+          <div id="btc-wallet" class="wallet-content">
+            <div class="qr-code-container">
+              <div class="qr-code">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=3FZbgi29pgTQ3KJJeuZPbQYJBJfZ4qJwYt" alt="BTC QR Code">
+              </div>
+              <div class="wallet-address">3FZbgi29pgTQ3KJJeuZPbQYJBJfZ4qJwYt</div>
+              <div class="network-info">Bitcoin Network</div>
+              <div class="wallet-buttons">
+                <button class="wallet-btn copy-btn">Копировать адрес</button>
+              </div>
+            </div>
+          </div>
+          
+          <div id="eth-wallet" class="wallet-content">
+            <div class="qr-code-container">
+              <div class="qr-code">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=0x71C7656EC7ab88b098defB751B7401B5f6d8976F" alt="ETH QR Code">
+              </div>
+              <div class="wallet-address">0x71C7656EC7ab88b098defB751B7401B5f6d8976F</div>
+              <div class="network-info">Ethereum Network (ERC20)</div>
+              <div class="wallet-buttons">
+                <button class="wallet-btn copy-btn">Копировать адрес</button>
+              </div>
+            </div>
+          </div>
+          
+          <div id="usdt-erc20-wallet" class="wallet-content active">
+            <div class="qr-code-container">
+              <div class="qr-code">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=TRWAUKg2yw1QRFh9TTsGvSJudyHACHzyJ3" alt="USDT ERC20 QR Code">
+              </div>
+              <div class="wallet-address">TRWAUKg2yw1QRFh9TTsGvSJudyHACHzyJ3</div>
+              <div class="network-info">Ethereum Network (ERC20)</div>
+              <div class="wallet-buttons">
+                <button class="wallet-btn copy-btn">Копировать адрес</button>
+              </div>
+            </div>
+          </div>
+          
+          <div id="usdt-trc20-wallet" class="wallet-content">
+            <div class="qr-code-container">
+              <div class="qr-code">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=TRWAUKg2yw1QRFh9TTsGvSJudyHACHzyJ3" alt="USDT TRC20 QR Code">
+              </div>
+              <div class="wallet-address">TRWAUKg2yw1QRFh9TTsGvSJudyHACHzyJ3</div>
+              <div class="network-info">Tron Network (TRC20)</div>
+              <div class="wallet-buttons">
+                <button class="wallet-btn copy-btn">Копировать адрес</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="history-section">
+          <h2>История транзакций</h2>
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>Дата</th>
+                <th>Сумма</th>
+                <th>Описание</th>
+                <th>Счёт</th>
+                <th>Тип</th>
+                <th>Статус</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="empty-history">
+                <td colspan="6">Нет данных о транзакциях</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Страница Вывод -->
+      <div id="withdraw-page" class="page-content">
+        <h1>Вывод средств</h1>
+
+        <!-- Главный баланс как на реальной бирже -->
+        <div class="total-balance">
+          <div class="total-balance-label">Доступно для вывода</div>
+          <div class="total-balance-amount" id="withdrawTotalBalance">0.00<span class="balance-currency">USDT</span></div>
+        </div>
+
+        <div class="balance-display">
+          <div class="balance-row">
+            <span class="balance-label">Общий баланс</span>
+            <span class="balance-amount" id="withdrawBalanceTotal">0.00 USDT</span>
+          </div>
+          <div class="balance-row">
+            <span class="balance-label">Доступно для вывода</span>
+            <span class="balance-amount" id="withdrawBalanceAvailable">0.00 USDT</span>
+          </div>
+          <div class="balance-row">
+            <span class="balance-label">В ордерах</span>
+            <span class="balance-amount">0.00 USDT</span>
+          </div>
+        </div>
+
+        <div class="withdraw-form">
+          <div class="withdraw-tabs">
+            <div class="withdraw-tab active" id="bankTab">Банковская карта</div>
+            <div class="withdraw-tab" id="cryptoTab">Криптовалюта</div>
+          </div>
+
+          <div id="bank" class="form-section active">
+            <div class="form-group">
+              <label for="card-number">Номер карты</label>
+              <input type="text" id="card-number" placeholder="0000 0000 0000 0000" />
+            </div>
+            <div class="form-group">
+              <label for="card-holder">Имя владельца карты</label>
+              <input type="text" id="card-holder" placeholder="IVAN IVANOV" />
+            </div>
+            <div class="form-group">
+              <label for="withdraw-amount-bank">Сумма вывода (USDT)</label>
+              <input type="text" id="withdraw-amount-bank" placeholder="0.00" />
+            </div>
+            <button class="submit-btn" id="bankWithdrawBtn">Вывести средства</button>
+          </div>
+
+          <div id="crypto" class="form-section">
+            <div class="form-group">
+              <label for="wallet-address">Адрес кошелька</label>
+              <input type="text" id="wallet-address" placeholder="0x..." />
+            </div>
+            <div class="form-group">
+              <label for="withdraw-amount-crypto">Сумма в USDT</label>
+              <input type="text" id="withdraw-amount-crypto" placeholder="0.00" />
+            </div>
+            <button class="submit-btn" id="cryptoWithdrawBtn">Отправить криптовалюту</button>
+          </div>
+        </div>
+
+        <div class="history-section">
+          <h2>История транзакций</h2>
+          <table class="history-table">
+            <thead>
+              <tr>
+                <th>Дата</th>
+                <th>Валюта</th>
+                <th>Описание</th>
+                <th>Сумма</th>
+                <th>Статус</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr class="empty-history">
+                <td colspan="5">Нет данных о транзакциях</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Мобильная навигация внизу -->
+<div class="mobile-bottom-nav" id="mobileBottomNav">
+  <div class="mobile-nav-item active" onclick="showPage('trade')">
+    <img src="https://img.icons8.com/ios-filled/24/ffffff/home.png" alt="Торговля" />
+    <div>Торговля</div>
+  </div>
+  <div class="mobile-nav-item" onclick="showPage('profile')">
+    <img src="https://img.icons8.com/ios-filled/24/ffffff/user-male-circle.png" alt="Профиль" />
+    <div>Профиль</div>
+  </div>
+  <div class="mobile-nav-item" onclick="showPage('deposit')">
+    <img src="https://img.icons8.com/ios-filled/24/ffffff/money-transfer.png" alt="Депозит" />
+    <div>Депозит</div>
+  </div>
+  <div class="mobile-nav-item" onclick="showPage('withdraw')">
+    <img src="https://img.icons8.com/ios-filled/24/ffffff/export.png" alt="Вывод" />
+    <div>Вывод</div>
+  </div>
+</div>
+
+<!-- Модальные окна -->
+<div class="modal-overlay" id="vipModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Доступ ограничен</h3>
+      <button class="modal-close" id="closeVipModalBtn">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-message">
+        <p>Вывод на банковскую карту доступен только для VIP-пользователей.</p>
+        <p>Для получения VIP-статуса обратитесь в службу поддержки.</p>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-btn modal-btn-cancel" id="cancelVipBtn">Закрыть</button>
+      <button class="modal-btn modal-btn-confirm" id="confirmVipBtn">Понятно</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="commissionModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Внимание: Высокие комиссии</h3>
+      <button class="modal-close" id="closeCommissionModalBtn">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-message">
+        <p>Информируем Вас о комиссиях при выводе средств.</p>
+        
+        <div class="commission-warning">
+          <p><strong>Комиссия за вывод: 40%</strong></p>
+          <p>Причина применения:</p>
+          <ul class="commission-list">
+            <li>• Отсутствием пройденной процедуры KYC-верификации;</li>
+            <li>• Действием стартового тарифного плана (при депозите менее 1 000 USDT).</li>
+          </ul>
+        </div>
+
+        <p><strong>Дополнительно:</strong> Биржа-получатель может удержать до 40% от суммы перевода согласно своим тарифам.</p>
+        
+        <p class="commission-total">Общие расходы на комиссию составят от 40% до 80% от запрашиваемой суммы.</p>
+      </div>
+
+      <div class="checkbox-container">
+        <input type="checkbox" id="agreeCheckbox">
+        <label for="agreeCheckbox" class="checkbox-label">
+          Я соглашаюсь с тем что расходы на комиссию составят от 40% до 80% от суммы вывода
+        </label>
+      </div>
+
+      <div id="supportMessage" class="support-message" style="display: none;">
+        <p>Свяжитесь с поддержкой для подтверждения личности</p>
+        <button class="modal-btn modal-btn-confirm" id="closeSupportBtn">Закрыть</button>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="modal-btn modal-btn-cancel" id="cancelCommissionBtn">Отмена</button>
+      <button class="modal-btn modal-btn-confirm" id="continueBtn" disabled>Продолжить</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="requestModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Запрос на вывод средств</h3>
+      <button class="modal-close" id="closeRequestModalBtn">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="success-checkmark">
+        <div class="check-icon">
+          <span class="icon-line line-tip"></span>
+          <span class="icon-line line-long"></span>
+          <div class="icon-circle"></div>
+          <div class="icon-fix"></div>
+        </div>
+      </div>
+      
+      <div class="modal-message" style="text-align: center;">
+        <p style="font-size: 20px; font-weight: bold; color: #16c784; margin-bottom: 20px;">✓ Запрос в обработке</p>
+        <p>Для подтверждения вывода обратитесь в поддержку</p>
+      </div>
+
+      <div class="request-buttons">
+        <a href="https://www.galardro.org/sapport" target="_blank" class="support-link-btn">
+          Перейти в поддержку
+        </a>
+        <button class="cancel-withdraw-btn" id="cancelRequestBtn">
+          Отменить вывод
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="normalModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Запрос на вывод средств</h3>
+      <button class="modal-close" id="closeNormalModalBtn">×</button>
+    </div>
+    <div class="modal-body">
+      <div class="success-checkmark">
+        <div class="check-icon">
+          <span class="icon-line line-tip"></span>
+          <span class="icon-line line-long"></span>
+          <div class="icon-circle"></div>
+          <div class="icon-fix"></div>
+        </div>
+      </div>
+      
+      <div class="modal-message" style="text-align: center;">
+        <p style="font-size: 20px; font-weight: bold; color: #16c784; margin-bottom: 20px;">✓ Запрос на вывод принят</p>
+        <p>Средства будут зачислены в течение 24 часов</p>
+      </div>
+
+      <div class="normal-withdraw-info">
+        <p><strong>Детали вывода:</strong></p>
+        <div class="withdraw-details">
+          <div class="detail-row">
+            <span>Сумма вывода:</span>
+            <span id="withdrawAmount">100.00 USDT</span>
+          </div>
+          <div class="detail-row">
+            <span>Комиссия сети:</span>
+            <span class="fee-amount" id="networkFee">1.00 USDT</span>
+          </div>
+          <div class="detail-row">
+            <span>Вы получите:</span>
+            <span class="receive-amount" id="receiveAmount">99.00 USDT</span>
+          </div>
+          <div class="detail-row">
+            <span>Адрес кошелька:</span>
+            <span id="walletAddressDisplay">0x742d35Cc6634C0532925a3b8D...</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="countdown-timer" id="countdownTimer">
+        Обработка: <span id="timerValue">24:00:00</span>
+      </div>
+
+      <div class="request-buttons">
+        <button class="support-link-btn" id="closeNormalBtn">
+          Закрыть
+        </button>
+        <button class="cancel-withdraw-btn" id="cancelNormalWithdrawBtn">
+          Отменить вывод
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">Ошибка! Пожалуйста, попробуйте позже.</div>
+
+<script>
+// =============================================
+// КОНФИГУРАЦИЯ SUPABASE
+// =============================================
+const SUPABASE_CONFIG = {
+  url: 'https://wkukgnkfbxgpvlraczeu.supabase.co',
+  anonKey: 'sb_publishable_11WBFNEcbspv1yDyfxq7sQ_Nl51ew5i',
+  usersTable: 'app_users',
+  tradesTable: 'trades',
+  withdrawTable: 'withdraw_requests',
+  accountLocksTable: 'account_locks'
+};
+
+// =============================================
+// СИСТЕМА ВЕРСИЙ АКТИВОВ
+// =============================================
+
+// СПЕЦИАЛЬНЫЙ ПОЛЬЗОВАТЕЛЬ С РАСШИРЕННОЙ ВЕРСИЕЙ
+const PRO_USER_EMAIL = 'dimapetrochenko156@gmail.com';
+const PRO_USER_EMAIL_2 = 'khusainov_11@icloud.com';
+
+// ВЕРСИЯ 1: ОСНОВНАЯ (только акции)
+const BASIC_ASSETS = {
+  stocks: ["AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "SHEL", "NVDA", "META",
+          "NFLX", "INTC", "AMD", "BABA", "ORCL", "CRM", "ADBE", "QCOM", "UBER",
+          "PYPL", "T", "DIS", "KO", "PEP", "WMT", "MCD", "XOM", "CVX", "BA"],
+  
+  // Для базовой версии - только акции
+  crypto: [],
+  commodities: [],
+  indices: [],
+  forex: []
+};
+
+// ВЕРСИЯ 2: РАСШИРЕННАЯ (все активы)
+const PRO_ASSETS = {
+  stocks: ["AAPL", "MSFT", "GOOGL", "AMZN", "TSLA", "SHEL", "NVDA", "META",
+          "NFLX", "INTC", "AMD", "BABA", "ORCL", "CRM", "ADBE", "QCOM", "UBER",
+          "PYPL", "T", "DIS", "KO", "PEP", "WMT", "MCD", "XOM", "CVX", "BA",
+          "JNJ", "JPM", "V", "PG", "MA", "HD", "BAC", "ABBV", "PFE", "CSCO",
+          "AVGO", "COST", "LLY", "TMO", "ABT", "DHR", "NKE", "MRK", "UNH",
+          "ACN", "LIN", "WFC", "PM", "TXN", "HON", "IBM", "GS", "CAT", "DE",
+          "MMM", "GE", "F", "GM", "IBM", "VZ", "CMCSA", "CVS", "LOW", "SBUX"],
+  
+  crypto: ["BTC", "ETH", "BNB", "XRP", "ADA", "SOL", "DOT", "DOGE", "AVAX", "MATIC",
+          "SHIB", "TRX", "UNI", "LTC", "ATOM", "ETC", "XLM", "ALGO", "NEAR", "VET",
+          "FIL", "ICP", "XTZ", "EOS", "AAVE", "GRT", "SAND", "MANA", "THETA", "AXS"],
+  
+  commodities: ["GOLD", "SILVER", "OIL", "GAS", "COPPER", "PLATINUM", "PALLADIUM", 
+               "WHEAT", "CORN", "SOYBEANS", "COFFEE", "SUGAR", "COTTON", "COCOA", 
+               "LUMBER", "NATURALGAS", "BRENTOIL", "ALUMINUM", "NICKEL", "ZINC"],
+  
+  indices: ["SPX", "DJI", "NDX", "RUT", "FTSE", "DAX", "CAC", "NIKKEI", "HSI", 
+           "ASX", "TSX", "IBEX", "SMI", "AEX", "SENSEX", "BOVESPA", "MOEX"],
+  
+  forex: ["EURUSD", "GBPUSD", "USDJPY", "USDCHF", "AUDUSD", "USDCAD", "NZDUSD",
+         "EURGBP", "EURJPY", "GBPJPY", "EURCHF", "AUDJPY", "CADJPY", "CHFJPY",
+         "GBPCHF", "EURAUD", "EURNZD", "GBPAUD", "GBPCAD", "AUDNZD"]
+};
+
+// Маппинг для TradingView
+const tradingViewSymbols = {
+  // Акции
+  "AAPL": "NASDAQ:AAPL",
+  "MSFT": "NASDAQ:MSFT",
+  "GOOGL": "NASDAQ:GOOGL",
+  "AMZN": "NASDAQ:AMZN",
+  "TSLA": "NASDAQ:TSLA",
+  "SHEL": "NYSE:SHEL",
+  "NVDA": "NASDAQ:NVDA",
+  "META": "NASDAQ:META",
+  "NFLX": "NASDAQ:NFLX",
+  "INTC": "NASDAQ:INTC",
+  "AMD": "NASDAQ:AMD",
+  "BABA": "NYSE:BABA",
+  "ORCL": "NYSE:ORCL",
+  "CRM": "NYSE:CRM",
+  "ADBE": "NASDAQ:ADBE",
+  "QCOM": "NASDAQ:QCOM",
+  "UBER": "NYSE:UBER",
+  "PYPL": "NASDAQ:PYPL",
+  "T": "NYSE:T",
+  "DIS": "NYSE:DIS",
+  "KO": "NYSE:KO",
+  "PEP": "NASDAQ:PEP",
+  "WMT": "NYSE:WMT",
+  "MCD": "NYSE:MCD",
+  "XOM": "NYSE:XOM",
+  "CVX": "NYSE:CVX",
+  "BA": "NYSE:BA",
+  "JNJ": "NYSE:JNJ",
+  "JPM": "NYSE:JPM",
+  "V": "NYSE:V",
+  "PG": "NYSE:PG",
+  "MA": "NYSE:MA",
+  "HD": "NYSE:HD",
+  "BAC": "NYSE:BAC",
+  "ABBV": "NYSE:ABBV",
+  "PFE": "NYSE:PFE",
+  "CSCO": "NASDAQ:CSCO",
+  "AVGO": "NASDAQ:AVGO",
+  "COST": "NASDAQ:COST",
+  "LLY": "NYSE:LLY",
+  "TMO": "NYSE:TMO",
+  "ABT": "NYSE:ABT",
+  "DHR": "NYSE:DHR",
+  "NKE": "NYSE:NKE",
+  "MRK": "NYSE:MRK",
+  "UNH": "NYSE:UNH",
+  "ACN": "NYSE:ACN",
+  "LIN": "NYSE:LIN",
+  "WFC": "NYSE:WFC",
+  "PM": "NYSE:PM",
+  "TXN": "NASDAQ:TXN",
+  "HON": "NASDAQ:HON",
+  "IBM": "NYSE:IBM",
+  "GS": "NYSE:GS",
+  "CAT": "NYSE:CAT",
+  "DE": "NYSE:DE",
+  "MMM": "NYSE:MMM",
+  "GE": "NYSE:GE",
+  "F": "NYSE:F",
+  "GM": "NYSE:GM",
+  "VZ": "NYSE:VZ",
+  "CMCSA": "NASDAQ:CMCSA",
+  "CVS": "NYSE:CVS",
+  "LOW": "NYSE:LOW",
+  "SBUX": "NASDAQ:SBUX",
+  
+  // Криптовалюты
+  "BTC": "BINANCE:BTCUSDT",
+  "ETH": "BINANCE:ETHUSDT",
+  "BNB": "BINANCE:BNBUSDT",
+  "XRP": "BINANCE:XRPUSDT",
+  "ADA": "BINANCE:ADAUSDT",
+  "SOL": "BINANCE:SOLUSDT",
+  "DOT": "BINANCE:DOTUSDT",
+  "DOGE": "BINANCE:DOGEUSDT",
+  "AVAX": "BINANCE:AVAXUSDT",
+  "MATIC": "BINANCE:MATICUSDT",
+  "SHIB": "BINANCE:SHIBUSDT",
+  "TRX": "BINANCE:TRXUSDT",
+  "UNI": "BINANCE:UNIUSDT",
+  "LTC": "BINANCE:LTCUSDT",
+  "ATOM": "BINANCE:ATOMUSDT",
+  "ETC": "BINANCE:ETCUSDT",
+  "XLM": "BINANCE:XLMUSDT",
+  "ALGO": "BINANCE:ALGOUSDT",
+  "NEAR": "BINANCE:NEARUSDT",
+  "VET": "BINANCE:VETUSDT",
+  "FIL": "BINANCE:FILUSDT",
+  "ICP": "BINANCE:ICPUSDT",
+  "XTZ": "BINANCE:XTZUSDT",
+  "EOS": "BINANCE:EOSUSDT",
+  "AAVE": "BINANCE:AAVEUSDT",
+  "GRT": "BINANCE:GRTUSDT",
+  "SAND": "BINANCE:SANDUSDT",
+  "MANA": "BINANCE:MANAUSDT",
+  "THETA": "BINANCE:THETAUSDT",
+  "AXS": "BINANCE:AXSUSDT",
+  
+  // Товары
+  "GOLD": "TVC:GOLD",
+  "SILVER": "TVC:SILVER",
+  "OIL": "TVC:USOIL",
+  "GAS": "TVC:NATGAS",
+  "COPPER": "TVC:COPPER",
+  "PLATINUM": "TVC:PLATINUM",
+  "PALLADIUM": "TVC:PALLADIUM",
+  "WHEAT": "CBOT:ZW1!",
+  "CORN": "CBOT:ZC1!",
+  "SOYBEANS": "CBOT:ZS1!",
+  "COFFEE": "ICEUS:KC1!",
+  "SUGAR": "ICEUS:SB1!",
+  "COTTON": "ICEUS:CT1!",
+  "COCOA": "ICEUS:CC1!",
+  "LUMBER": "CME:LBS1!",
+  "NATURALGAS": "NYMEX:NG1!",
+  "BRENTOIL": "TVC:UKOIL",
+  "ALUMINUM": "LME:AH1!",
+  "NICKEL": "LME:NI1!",
+  "ZINC": "LME:ZS1!",
+  
+  // Индексы
+  "SPX": "SP:SPX",
+  "DJI": "DJ:DJI",
+  "NDX": "NASDAQ:NDX",
+  "RUT": "RUSSELL:RUT",
+  "FTSE": "FTSE:UKX",
+  "DAX": "DAX:DAX",
+  "CAC": "EURONEXT:CAC",
+  "NIKKEI": "TSE:NKY",
+  "HSI": "HKEX:HSI",
+  "ASX": "ASX:AXJO",
+  "TSX": "TSX:TSX",
+  "IBEX": "BME:IBEX",
+  "SMI": "SIX:SMI",
+  "AEX": "EURONEXT:AEX",
+  "SENSEX": "BSE:SENSEX",
+  "BOVESPA": "B3:IBOV",
+  "MOEX": "MOEX:MOEX",
+  
+  // Форекс
+  "EURUSD": "FX:EURUSD",
+  "GBPUSD": "FX:GBPUSD",
+  "USDJPY": "FX:USDJPY",
+  "USDCHF": "FX:USDCHF",
+  "AUDUSD": "FX:AUDUSD",
+  "USDCAD": "FX:USDCAD",
+  "NZDUSD": "FX:NZDUSD",
+  "EURGBP": "FX:EURGBP",
+  "EURJPY": "FX:EURJPY",
+  "GBPJPY": "FX:GBPJPY",
+  "EURCHF": "FX:EURCHF",
+  "AUDJPY": "FX:AUDJPY",
+  "CADJPY": "FX:CADJPY",
+  "CHFJPY": "FX:CHFJPY",
+  "GBPCHF": "FX:GBPCHF",
+  "EURAUD": "FX:EURAUD",
+  "EURNZD": "FX:EURNZD",
+  "GBPAUD": "FX:GBPAUD",
+  "GBPCAD": "FX:GBPCAD",
+  "AUDNZD": "FX:AUDNZD"
+};
+
+// =============================================
+// ГЛОБАЛЬНЫЕ ПЕРЕМЕННЫЕ
+// =============================================
+let supabaseClient = null;
+let currentUser = null;
+let usersData = {};
+let tradesChannel = null;
+let positionsData = [];
+let isAccountBlocked = false;
+let accountBlockData = null;
+let countdownInterval = null;
+let currentCategory = 'stocks';
+let currentAssetVersion = 'basic'; // 'basic' или 'pro'
+let currentAssets = BASIC_ASSETS; // Текущие активы
+
+// =============================================
+// ИНИЦИАЛИЗАЦИЯ SUPABASE КЛИЕНТА
+// =============================================
+try {
+  supabaseClient = window.supabase.createClient(
+    SUPABASE_CONFIG.url,
+    SUPABASE_CONFIG.anonKey
+  );
+  console.log('Supabase клиент инициализирован');
+} catch (error) {
+  console.error('Ошибка инициализации Supabase:', error);
+}
+
+// =============================================
+// СИСТЕМА УПРАВЛЕНИЯ ВЕРСИЯМИ АКТИВОВ
+// =============================================
+
+// 1. Определение версии для пользователя
+function determineAssetVersion(userEmail) {
+  // Для petrochenko156@gmail.com и khusainov_11@icloud.com - всегда расширенная версия
+  if (userEmail === PRO_USER_EMAIL || userEmail === PRO_USER_EMAIL_2) {
+    return 'pro';
+  }
+  
+  // Для всех остальных - базовая версия
+  return 'basic';
+}
+
+// 2. Загрузка активов по версии
+function loadAssetsByVersion(version) {
+  console.log(`Загрузка активов версии: ${version}`);
+  
+  currentAssetVersion = version;
+  currentAssets = version === 'pro' ? PRO_ASSETS : BASIC_ASSETS;
+  
+  // Обновляем бейдж версии
+  updateVersionBadge(version);
+  
+  // Обновляем интерфейс
+  updateUIForVersion(version);
+  
+  // Загружаем активы
+  initCompanyList();
+  updateWatchlist();
+  updateQuickButtons();
+  
+  // Обновляем информацию о версии
+  updateVersionInfo(version);
+  
+  // Обновляем профиль
+  if (document.getElementById('profileVersion')) {
+    document.getElementById('profileVersion').textContent = 
+      version === 'pro' ? 'Расширенная' : 'Базовая';
+  }
+}
+
+// 3. Обновление бейджа версии
+function updateVersionBadge(version) {
+  const badgeElement = document.getElementById('versionBadge');
+  const watchlistBadge = document.getElementById('watchlistBadge');
+  const chartBadge = document.getElementById('chartBadge');
+  const terminalBadge = document.getElementById('terminalBadge');
+  
+  if (version === 'pro') {
+    if (badgeElement) badgeElement.innerHTML = '<span class="pro-badge">PRO</span>';
+    if (watchlistBadge) watchlistBadge.innerHTML = '<span class="pro-badge">PRO</span>';
+    if (chartBadge) chartBadge.innerHTML = '<span class="pro-badge">PRO</span>';
+    if (terminalBadge) terminalBadge.innerHTML = '<span class="pro-badge">PRO</span>';
+  } else {
+    if (badgeElement) badgeElement.textContent = '';
+    if (watchlistBadge) watchlistBadge.textContent = '';
+    if (chartBadge) chartBadge.textContent = '';
+    if (terminalBadge) terminalBadge.textContent = '';
+  }
+}
+
+// 4. Обновление информации о версии
+function updateVersionInfo(version) {
+  const versionInfo = document.getElementById('versionInfo');
+  if (!versionInfo) return;
+  
+  if (version === 'pro') {
+    versionInfo.innerHTML = `
+      <strong> </strong><br>
+      
+    `;
+    versionInfo.style.display = 'block';
+  } else {
+    versionInfo.innerHTML = `
+      <strong></strong><br>
+      Доступно: ${BASIC_ASSETS.stocks.length} акций<br>
+      
+    `;
+    versionInfo.style.display = 'block';
+  }
+}
+
+// 5. Обновление интерфейса для версии
+function updateUIForVersion(version) {
+  const categoryTabs = document.getElementById('categoryTabs');
+  if (!categoryTabs) return;
+  
+  categoryTabs.innerHTML = '';
+  
+  if (version === 'pro') {
+    // Для PRO версии показываем все вкладки
+    const tabs = [
+      { id: 'stocks', name: `Акции (${PRO_ASSETS.stocks.length})` },
+      { id: 'crypto', name: `Крипто (${PRO_ASSETS.crypto.length})` },
+      { id: 'commodities', name: `Товары (${PRO_ASSETS.commodities.length})` },
+      { id: 'indices', name: `Индексы (${PRO_ASSETS.indices.length})` },
+      { id: 'forex', name: `Форекс (${PRO_ASSETS.forex.length})` }
+    ];
+    
+    tabs.forEach(tab => {
+      const tabElement = document.createElement('div');
+      tabElement.className = `category-tab ${tab.id === 'stocks' ? 'active' : ''}`;
+      tabElement.textContent = tab.name;
+      tabElement.onclick = () => switchCategory(tab.id);
+      categoryTabs.appendChild(tabElement);
+    });
+  } else {
+    // Для BASIC версии показываем только акции
+    const tabElement = document.createElement('div');
+    tabElement.className = 'category-tab active';
+    tabElement.textContent = `Акции (${BASIC_ASSETS.stocks.length})`;
+    tabElement.onclick = () => switchCategory('stocks');
+    categoryTabs.appendChild(tabElement);
+    
+    // Скрываем другие категории
+    currentCategory = 'stocks';
+  }
+}
+
+// 6. Обновление быстрых кнопок
+function updateQuickButtons() {
+  const quickButtons = document.getElementById('quickButtons');
+  if (!quickButtons) return;
+  
+  quickButtons.innerHTML = '';
+  
+  // Для базовой версии - только акции
+  if (currentAssetVersion === 'basic') {
+    const basicStocks = BASIC_ASSETS.stocks.slice(0, 6); // Первые 6 акций
+    basicStocks.forEach(stock => {
+      const button = document.createElement('div');
+      button.className = 'quick-btn';
+      button.textContent = stock;
+      button.onclick = () => selectAsset(stock);
+      quickButtons.appendChild(button);
+    });
+  } else {
+    // Для PRO версии - смешанные активы
+    const quickAssets = [
+      ...PRO_ASSETS.stocks.slice(0, 4), // 4 акции
+      ...PRO_ASSETS.crypto.slice(0, 2), // 2 крипто
+      ...PRO_ASSETS.commodities.slice(0, 2), // 2 товара
+      ...PRO_ASSETS.forex.slice(0, 2) // 2 форекс
+    ];
+    
+    quickAssets.forEach(asset => {
+      const button = document.createElement('div');
+      button.className = 'quick-btn';
+      
+      // Форматируем название для отображения
+      let displayName = asset;
+      if (currentCategory === 'forex') {
+        displayName = asset.substring(0, 3) + '/' + asset.substring(3);
+      }
+      
+      button.textContent = displayName;
+      button.onclick = () => selectAsset(asset);
+      quickButtons.appendChild(button);
+    });
+  }
+}
+
+// =============================================
+// ОСНОВНЫЕ ФУНКЦИИ
+// =============================================
+
+// 1. Вход в систему
+async function checkLogin() {
+  if (!supabaseClient) {
+    showToast('❌ Ошибка подключения к базе данных');
+    return;
+  }
+  
+  const login = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const errorElement = document.getElementById('loginError');
+  
+  if (!login || !password) {
+    errorElement.style.display = 'block';
+    return;
+  }
+  
+  try {
+    console.log('Попытка входа для пользователя:', login);
+    
+    const { data, error } = await supabaseClient
+      .from(SUPABASE_CONFIG.usersTable)
+      .select('*')
+      .eq('user_key', login)
+      .eq('password', password);
+    
+    console.log('Результат запроса:', { data, error });
+    
+    if (error) {
+      console.error('Ошибка запроса к Supabase:', error);
+      errorElement.style.display = 'block';
+      showToast('❌ Ошибка подключения к базе данных');
+      return;
+    }
+    
+    if (!data || data.length === 0) {
+      console.log('❌ Пользователь не найден или неверный пароль');
+      errorElement.style.display = 'block';
+      showToast('❌ Неверный логин или пароль');
+      return;
+    }
+    
+    const userData = data[0];
+    console.log('✅ Пользователь найден:', userData);
+    
+    currentUser = login;
+    
+    // Обновляем локальный кэш
+    usersData[login] = {
+      password: userData.password,
+      balance: userData.balance ? parseFloat(userData.balance).toFixed(2) : "0.00",
+      level: userData.level || 'Стандарт',
+      withdrawType: userData.withdraw_type || 'normal',
+      email: userData.email || `${login}@galardro.org`,
+      id: userData.id
+    };
+    
+    // Определяем версию активов для пользователя
+    const userEmail = usersData[login].email;
+    const assetVersion = determineAssetVersion(userEmail);
+    
+    console.log(`Версия активов для ${userEmail}: ${assetVersion}`);
+    
+    // Проверка блокировки
+    const isBlocked = await checkAccountBlockStatus(currentUser);
+    
+    // Сохраняем в localStorage
+    localStorage.setItem('isLoggedIn', 'true');
+    localStorage.setItem('currentUser', login);
+    
+    // Обновляем UI
+    document.getElementById('loginContainer').style.display = 'none';
+    document.getElementById('mainContent').style.display = 'block';
+    
+    updateUIForBlockedAccount(isBlocked);
+    updateUserData();
+    updateAllBalances();
+    updateCurrentTime();
+    
+    // Загружаем активы согласно версии
+    loadAssetsByVersion(assetVersion);
+    
+    // Настраиваем real-time подписки
+    setupAccountLockRealtime();
+    await loadAndDisplayPositions();
+    setupPositionsRealtime();
+    
+    errorElement.style.display = 'none';
+    
+    console.log('✅ Успешный вход!');
+    showToast('✅ Успешный вход!' + (isBlocked ? ' (Аккаунт заблокирован)' : ''));
+    
+  } catch (error) {
+    console.error('❌ Критическая ошибка при входе:', error);
+    errorElement.style.display = 'block';
+    showToast('❌ Ошибка входа: ' + error.message);
+  }
+}
+
+// 2. Выход из системы
+function logout() {
+  if (confirm('Вы уверены, что хотите выйти?')) {
+    // Отписываемся от real-time
+    if (tradesChannel) {
+      supabaseClient.removeChannel(tradesChannel);
+      tradesChannel = null;
+    }
+    
+    // Очищаем данные
+    currentUser = null;
+    positionsData = [];
+    isAccountBlocked = false;
+    accountBlockData = null;
+    currentAssetVersion = 'basic';
+    currentAssets = BASIC_ASSETS;
+    
+    // Очищаем localStorage
+    localStorage.removeItem('isLoggedIn');
+    localStorage.removeItem('currentUser');
+    
+    // Обновляем UI
+    document.getElementById('mainContent').style.display = 'none';
+    document.getElementById('loginContainer').style.display = 'flex';
+    
+    // Скрываем уведомление о блокировке
+    closeBlockedToast();
+    
+    // Очищаем поля ввода
+    document.getElementById('loginEmail').value = '';
+    document.getElementById('loginPassword').value = '';
+    
+    showToast('Вы вышли из системы');
+  }
+}
+
+// 3. Показать страницу
+function showPage(page) {
+  document.querySelectorAll('.page-content').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sidebar-item').forEach(item => item.classList.remove('active'));
+  document.querySelectorAll('.mobile-nav-item').forEach(item => item.classList.remove('active'));
+  
+  document.getElementById(`${page}-page`).classList.add('active');
+  
+  // Закрываем меню
+  document.getElementById('dropdownMenu').classList.remove('active');
+  
+  // Активируем соответствующий элемент в навигации
+  if (window.innerWidth > 767) {
+    const sidebarItems = document.querySelectorAll('.sidebar-item');
+    const pages = ['trade', 'profile', 'deposit', 'withdraw'];
+    sidebarItems.forEach((item, index) => {
+      if (pages[index] === page) {
+        item.classList.add('active');
+      }
+    });
+  } else {
+    const mobileItems = document.querySelectorAll('.mobile-nav-item');
+    const pages = ['trade', 'profile', 'deposit', 'withdraw'];
+    mobileItems.forEach((item, index) => {
+      if (pages[index] === page) {
+        item.classList.add('active');
+      }
+    });
+  }
+  
+  // Обновляем балансы при переключении страниц
+  if (currentUser) {
+    updateAllBalances();
+  }
+  
+  // Если показываем страницу торговли, обновляем позиции
+  if (page === 'trade') {
+    updatePositionsDisplay();
+  }
+  
+  // Обновляем информацию о версии в профиле
+  if (page === 'profile' && document.getElementById('profileVersion')) {
+    document.getElementById('profileVersion').textContent = 
+      currentAssetVersion === 'pro' ? 'Расширенная' : 'Базовая';
+  }
+}
+
+// 4. Переключение категорий активов
+function switchCategory(category) {
+  currentCategory = category;
+  
+  // Обновляем активные вкладки
+  document.querySelectorAll('.category-tab').forEach(tab => {
+    tab.classList.remove('active');
+  });
+  
+  // Находим и активируем нужную вкладку
+  const tabs = document.querySelectorAll('.category-tab');
+  tabs.forEach(tab => {
+    if (tab.textContent.includes(category.charAt(0).toUpperCase() + category.slice(1))) {
+      tab.classList.add('active');
+    }
+  });
+  
+  // Обновляем список компаний
+  initCompanyList();
+  
+  // Выбираем первый актив из категории
+  const firstAsset = currentAssets[category] ? currentAssets[category][0] : null;
+  if (firstAsset) {
+    selectAsset(firstAsset);
+  }
+}
+
+// 5. Выбор актива
+function selectAsset(symbol) {
+  document.getElementById("selectedCompany").textContent = symbol;
+  
+  // Определяем отображаемое название
+  let displayName = symbol;
+  if (currentCategory === 'forex') {
+    displayName = symbol.substring(0, 3) + '/' + symbol.substring(3);
+  }
+  document.getElementById("companyTitle").textContent = displayName;
+  
+  // Получаем символ для TradingView
+  const tvSymbol = tradingViewSymbols[symbol] || `NASDAQ:${symbol}`;
+  
+  // Обновляем график
+  const chartFrame = document.getElementById("chartFrame");
+  chartFrame.src = `https://www.tradingview.com/widgetembed/?symbol=${tvSymbol}&interval=1&theme=dark`;
+  
+  // Обновляем рыночные данные
+  updateMarketData();
+  document.getElementById("dropdown").style.display = "none";
+}
+
+// 6. Инициализация списка компаний
+function initCompanyList() {
+  const companyList = document.getElementById('companyList');
+  if (!companyList) return;
+  
+  companyList.innerHTML = '';
+  
+  const currentCategoryAssets = currentAssets[currentCategory] || [];
+  
+  currentCategoryAssets.forEach(asset => {
+    const div = document.createElement('div');
+    
+    // Форматируем название для отображения
+    let displayName = asset;
+    if (currentCategory === 'forex') {
+      displayName = asset.substring(0, 3) + '/' + asset.substring(3);
+    }
+    
+    div.textContent = displayName;
+    div.setAttribute('data-symbol', asset);
+    div.addEventListener('click', () => selectAsset(asset));
+    companyList.appendChild(div);
+  });
+}
+
+// 7. Фильтрация компаний
+function filterCompanies(search = "") {
+  const companyList = document.getElementById("companyList");
+  if (!companyList) return;
+  
+  const currentCategoryAssets = currentAssets[currentCategory] || [];
+  const filtered = currentCategoryAssets.filter(asset => {
+    const displayName = currentCategory === 'forex' 
+      ? asset.substring(0, 3) + '/' + asset.substring(3)
+      : asset;
+    return displayName.toLowerCase().includes(search.toLowerCase());
+  });
+  
+  companyList.innerHTML = "";
+  filtered.forEach(asset => {
+    const div = document.createElement("div");
+    
+    let displayName = asset;
+    if (currentCategory === 'forex') {
+      displayName = asset.substring(0, 3) + '/' + asset.substring(3);
+    }
+    
+    div.textContent = displayName;
+    div.setAttribute('data-symbol', asset);
+    div.addEventListener('click', () => selectAsset(asset));
+    companyList.appendChild(div);
+  });
+}
+
+// 8. Обновление рыночных данных
+function updateMarketData() {
+  const priceElement = document.getElementById('currentPrice');
+  const volumeElement = document.getElementById('dailyVolume');
+  const changeElement = document.getElementById('dailyChange');
+  
+  if (priceElement) {
+    const currentPrice = parseFloat(priceElement.textContent.split(' ')[0]) || 100;
+    const newPrice = (currentPrice + (Math.random() * 0.5 - 0.25)).toFixed(2);
+    priceElement.textContent = `${newPrice} USD`;
+    priceElement.style.color = newPrice > currentPrice ? '#16c784' : '#ea3943';
+    setTimeout(() => priceElement.style.color = '#c9d1d9', 500);
+  }
+  
+  if (volumeElement) {
+    const currentVolume = parseFloat(volumeElement.textContent) || 1000;
+    const newVolume = (currentVolume + (Math.random() * 100 - 50)).toFixed(0);
+    volumeElement.textContent = `${Math.abs(newVolume)} BTC`;
+  }
+  
+  if (changeElement) {
+    const currentChange = parseFloat(changeElement.textContent) || 0;
+    const newChange = (currentChange + (Math.random() * 0.5 - 0.25)).toFixed(2);
+    changeElement.textContent = `${newChange}%`;
+    changeElement.style.color = newChange >= 0 ? '#16c784' : '#ea3943';
+  }
+}
+
+// 9. Обновление списка избранного
+function updateWatchlist() {
+  const watchlistContainer = document.getElementById('watchlist');
+  if (!watchlistContainer) return;
+  
+  watchlistContainer.innerHTML = '';
+  
+  // Для базовой версии - только акции
+  if (currentAssetVersion === 'basic') {
+    const basicStocks = BASIC_ASSETS.stocks.slice(0, 6); // Первые 6 акций
+    
+    basicStocks.forEach(stock => {
+      const price = 100 + Math.random() * 1000;
+      const change = (Math.random() * 10 - 5).toFixed(2);
+      const changeClass = change >= 0 ? 'positive' : 'negative';
+      const changeSign = change >= 0 ? '+' : '';
+      
+      const item = document.createElement('div');
+      item.className = 'watchlist-item';
+      item.onclick = () => selectAsset(stock);
+      
+      item.innerHTML = `
+        <div class="asset-name">${stock}</div>
+        <div class="asset-price">${price.toFixed(2)}</div>
+        <div class="asset-change ${changeClass}">${changeSign}${change}%</div>
+      `;
+      
+      watchlistContainer.appendChild(item);
+    });
+  } else {
+    // Для PRO версии - смешанные активы
+    const watchlistAssets = [
+      ...PRO_ASSETS.stocks.slice(0, 3), // 3 акции
+      ...PRO_ASSETS.crypto.slice(0, 2), // 2 крипто
+      ...PRO_ASSETS.commodities.slice(0, 1) // 1 товар
+    ];
+    
+    watchlistAssets.forEach(asset => {
+      let price, symbol;
+      
+      // Определяем цену в зависимости от типа актива
+      if (PRO_ASSETS.stocks.includes(asset)) {
+        price = 100 + Math.random() * 1000;
+        symbol = asset;
+      } else if (PRO_ASSETS.crypto.includes(asset)) {
+        price = asset === 'BTC' ? 50000 + Math.random() * 10000 : 1000 + Math.random() * 5000;
+        symbol = asset + '/USDT';
+      } else {
+        price = asset === 'GOLD' ? 2000 + Math.random() * 500 : 100 + Math.random() * 50;
+        symbol = asset;
+      }
+      
+      const change = (Math.random() * 10 - 5).toFixed(2);
+      const changeClass = change >= 0 ? 'positive' : 'negative';
+      const changeSign = change >= 0 ? '+' : '';
+      
+      const item = document.createElement('div');
+      item.className = 'watchlist-item';
+      item.onclick = () => selectAsset(asset);
+      
+      item.innerHTML = `
+        <div class="asset-name">${symbol}</div>
+        <div class="asset-price">${price.toFixed(2)}</div>
+        <div class="asset-change ${changeClass}">${changeSign}${change}%</div>
+      `;
+      
+      watchlistContainer.appendChild(item);
+    });
+  }
+}
+
+// 10. Обновление всех балансов
+function updateAllBalances() {
+  if (!currentUser || !usersData[currentUser]) {
+    return;
+  }
+  
+  const user = usersData[currentUser];
+  const balance = user.balance || "0.00";
+  
+  // Хедер
+  document.getElementById('balanceValue').textContent = balance + ' USDT';
+  
+  // Терминал
+  const availableBalanceInfo = document.getElementById('availableBalanceInfo');
+  if (availableBalanceInfo) {
+    availableBalanceInfo.textContent = `Дост.: ${balance} USDT`;
+  }
+  
+  // Депозит страница
+  const depositTotalBalance = document.getElementById('depositTotalBalance');
+  if (depositTotalBalance) {
+    depositTotalBalance.innerHTML = balance + '<span class="balance-currency">USDT</span>';
+  }
+  
+  const availableBalance = document.getElementById('availableBalance');
+  if (availableBalance) {
+    availableBalance.textContent = balance + ' USDT';
+  }
+  
+  // Вывод страница
+  const withdrawTotalBalance = document.getElementById('withdrawTotalBalance');
+  if (withdrawTotalBalance) {
+    withdrawTotalBalance.innerHTML = balance + '<span class="balance-currency">USDT</span>';
+  }
+  
+  const withdrawBalanceTotal = document.getElementById('withdrawBalanceTotal');
+  if (withdrawBalanceTotal) {
+    withdrawBalanceTotal.textContent = balance + ' USDT';
+  }
+  
+  const withdrawBalanceAvailable = document.getElementById('withdrawBalanceAvailable');
+  if (withdrawBalanceAvailable) {
+    withdrawBalanceAvailable.textContent = balance + ' USDT';
+  }
+}
+
+// =============================================
+// ОСТАЛЬНЫЕ ФУНКЦИИ (сохранены из предыдущего кода)
+// =============================================
+
+// Функции для блокировки аккаунта
+async function checkAccountBlockStatus(userKey) {
+  if (!supabaseClient || !userKey) {
+    console.log('Не удалось проверить блокировку: нет подключения или userKey');
+    return false;
+  }
+  
+  try {
+    const { data, error } = await supabaseClient
+      .from(SUPABASE_CONFIG.accountLocksTable)
+      .select('*')
+      .eq('user_key', userKey)
+      .single();
+    
+    if (error) {
+      if (error.code === 'PGRST116') {
+        return false;
+      }
+      console.error('Ошибка при проверке блокировки:', error);
+      return false;
+    }
+    
+    if (data.is_blocked === true) {
+      accountBlockData = data;
+      return true;
+    }
+    
+    return false;
+    
+  } catch (error) {
+    console.error('Ошибка при проверке статуса блокировки:', error);
+    return false;
+  }
+}
+
+function showBlockedToast() {
+  const toast = document.getElementById('accountBlockedToast');
+  if (toast) {
+    toast.style.display = 'block';
+    toast.style.animation = 'slideIn 0.3s ease';
+    
+    setTimeout(() => {
+      closeBlockedToast();
+    }, 10000);
+  }
+}
+
+function closeBlockedToast() {
+  const toast = document.getElementById('accountBlockedToast');
+  if (toast) {
+    toast.style.animation = 'slideIn 0.3s ease reverse';
+    setTimeout(() => {
+      toast.style.display = 'none';
+    }, 300);
+  }
+}
+
+function updateUIForBlockedAccount(isBlocked) {
+  const longBtn = document.getElementById('longBtn');
+  const shortBtn = document.getElementById('shortBtn');
+  const bankWithdrawBtn = document.getElementById('bankWithdrawBtn');
+  const cryptoWithdrawBtn = document.getElementById('cryptoWithdrawBtn');
+  
+  isAccountBlocked = isBlocked;
+  
+  if (isBlocked) {
+    if (longBtn) longBtn.classList.add('btn-disabled');
+    if (shortBtn) shortBtn.classList.add('btn-disabled');
+    if (bankWithdrawBtn) bankWithdrawBtn.classList.add('btn-disabled');
+    if (cryptoWithdrawBtn) cryptoWithdrawBtn.classList.add('btn-disabled');
+  } else {
+    if (longBtn) longBtn.classList.remove('btn-disabled');
+    if (shortBtn) shortBtn.classList.remove('btn-disabled');
+    if (bankWithdrawBtn) bankWithdrawBtn.classList.remove('btn-disabled');
+    if (cryptoWithdrawBtn) cryptoWithdrawBtn.classList.remove('btn-disabled');
+  }
+}
+
+async function checkBlockedBeforeAction(actionType) {
+  if (isAccountBlocked) {
+    showBlockedToast();
+    
+    let actionMessage = '';
+    switch(actionType) {
+      case 'trade':
+        actionMessage = 'Открытие сделок недоступно. ';
+        break;
+      case 'withdraw':
+        actionMessage = 'Вывод средств недоступен. ';
+        break;
+      case 'vip':
+        actionMessage = 'Доступ к VIP-функциям недоступен. ';
+        break;
+    }
+    
+    if (accountBlockData && accountBlockData.block_reason) {
+      showToast(`❌ ${actionMessage}Ваш аккаунт заблокирован по причине: ${accountBlockData.block_reason}. Подробности отправлены на вашу почту.`);
+    } else {
+      showToast(`❌ ${actionMessage}Ваш аккаунт заблокирован. Подробности отправлены на вашу почту.`);
+    }
+    
+    return true;
+  }
+  
+  return false;
+}
+
+function setupAccountLockRealtime() {
+  if (!supabaseClient || !currentUser) {
+    console.error('Supabase не инициализирован для real-time блокировок');
+    return;
+  }
+  
+  try {
+    const accountLockChannel = supabaseClient
+      .channel(`account-locks-${currentUser}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: SUPABASE_CONFIG.accountLocksTable,
+          filter: `user_key=eq.${currentUser}`
+        },
+        async (payload) => {
+          const isBlocked = payload.new ? payload.new.is_blocked : false;
+          updateUIForBlockedAccount(isBlocked);
+          
+          if (payload.new) {
+            accountBlockData = payload.new;
+          }
+          
+          if (payload.old && payload.new) {
+            if (payload.old.is_blocked === false && payload.new.is_blocked === true) {
+              showToast('⚠️ Ваш аккаунт был заблокирован. Проверьте вашу почту.');
+              showBlockedToast();
+            } else if (payload.old.is_blocked === true && payload.new.is_blocked === false) {
+              showToast('✅ Ваш аккаунт разблокирован!');
             }
+          }
+        }
+      )
+      .subscribe((status) => {
+        console.log('Real-time статус подписки на блокировки:', status);
+      });
+      
+    return accountLockChannel;
+    
+  } catch (error) {
+    console.error('Ошибка настройки real-time подписки на блокировки:', error);
+    return null;
+  }
+}
+
+// Функции торговли
+async function checkAndOpenPosition(type) {
+  const isBlocked = await checkBlockedBeforeAction('trade');
+  if (isBlocked) {
+    return;
+  }
+  
+  openPosition(type);
+}
+
+async function openPosition(type) {
+  if (!currentUser) {
+    showToast('Сначала войдите в систему');
+    return;
+  }
+  
+  const tradeSizeInput = document.getElementById('tradeSize');
+  const tradeSize = tradeSizeInput ? tradeSizeInput.value : '0';
+  
+  if (!tradeSize || parseFloat(tradeSize) <= 0) {
+    showToast('Введите корректный размер позиции');
+    return;
+  }
+  
+  const position = await openPositionInSupabase(type);
+  
+  if (position) {
+    showToast(`✅ Позиция ${type} на ${position.symbol} открыта! Размер: ${position.size} USDT`);
+    await loadAndDisplayPositions();
+  }
+}
+
+async function openPositionInSupabase(type) {
+  if (!currentUser || !supabaseClient) {
+    showToast('❌ Сначала войдите в систему');
+    return null;
+  }
+  
+  try {
+    const company = document.getElementById("selectedCompany").textContent;
+    const leverage = parseInt(document.getElementById("leverage").value);
+    const tradeSizeInput = document.getElementById("tradeSize");
+    const tradeSize = tradeSizeInput ? parseFloat(tradeSizeInput.value) : 0;
+    
+    if (!tradeSize || isNaN(tradeSize) || tradeSize <= 0) {
+      showToast('❌ Введите корректный размер позиции');
+      return null;
+    }
+    
+    if (!company) {
+      showToast('❌ Выберите актив для торговли');
+      return null;
+    }
+    
+    let take_profit = null;
+    let stop_loss = null;
+    
+    if (type === 'Лонг') {
+      const tpLongCheckbox = document.getElementById("tpLongCheckbox");
+      if (tpLongCheckbox && tpLongCheckbox.checked) {
+        const tpVal = document.getElementById("tpLong").value;
+        const slVal = document.getElementById("slLong").value;
+        take_profit = tpVal ? parseFloat(tpVal) : null;
+        stop_loss = slVal ? parseFloat(slVal) : null;
+      }
+    } else {
+      const tpShortCheckbox = document.getElementById("tpShortCheckbox");
+      if (tpShortCheckbox && tpShortCheckbox.checked) {
+        const tpVal = document.getElementById("tpShort").value;
+        const slVal = document.getElementById("slShort").value;
+        take_profit = tpVal ? parseFloat(tpVal) : null;
+        stop_loss = slVal ? parseFloat(slVal) : null;
+      }
+    }
+    
+    const getRandomPrice = (symbol) => {
+      let basePrice = 100;
+      
+      if (currentCategory === 'crypto') {
+        basePrice = symbol === 'BTC' ? 50000 : 1000;
+      } else if (currentCategory === 'commodities') {
+        basePrice = symbol === 'GOLD' ? 2000 : 100;
+      } else if (currentCategory === 'indices') {
+        basePrice = 5000;
+      } else if (currentCategory === 'forex') {
+        basePrice = 1.0;
+      }
+      
+      return (basePrice + Math.random() * basePrice * 0.1).toFixed(2);
+    };
+    
+    const entry_price = getRandomPrice(company);
+    
+    const tradeData = {
+      user_id: currentUser,
+      symbol: company,
+      symbol_full: company + (currentCategory === 'forex' ? '' : '/USDT'),
+      direction: type,
+      entry_price: entry_price,
+      size: tradeSize,
+      leverage: leverage,
+      take_profit: take_profit,
+      stop_loss: stop_loss,
+      status: 'отработка',
+      opened_at: new Date().toISOString(),
+      created_at: new Date().toISOString()
+    };
+    
+    console.log('Открытие позиции в Supabase:', tradeData);
+    
+    const { data, error } = await supabaseClient
+      .from(SUPABASE_CONFIG.tradesTable)
+      .insert([tradeData])
+      .select();
+    
+    if (error) {
+      console.error('Ошибка открытия позиции в Supabase:', error);
+      showToast('❌ Ошибка открытия позиции: ' + error.message);
+      return null;
+    }
+    
+    console.log('Позиция успешно открыта в Supabase:', data);
+    return data[0];
+    
+  } catch (error) {
+    console.error('Ошибка при открытии позиции:', error);
+    showToast('❌ Ошибка открытия позиции: ' + error.message);
+    return null;
+  }
+}
+
+// Функции для вывода средств
+async function checkAndSubmitWithdrawRequest() {
+  const isBlocked = await checkBlockedBeforeAction('withdraw');
+  if (isBlocked) {
+    return;
+  }
+  
+  createWithdrawRequest();
+}
+
+async function checkAndShowVipModal() {
+  const isBlocked = await checkBlockedBeforeAction('vip');
+  if (isBlocked) {
+    return;
+  }
+  
+  showVipModal();
+}
+
+async function createWithdrawRequest() {
+  if (!currentUser || !supabaseClient) {
+    showToast('❌ Сначала войдите в систему');
+    return false;
+  }
+  
+  try {
+    const walletAddress = document.getElementById('wallet-address').value.trim();
+    const amountInput = document.getElementById('withdraw-amount-crypto').value.trim();
+    
+    if (!walletAddress) {
+      showToast('❌ Введите адрес кошелька');
+      return false;
+    }
+    
+    if (!amountInput) {
+      showToast('❌ Введите сумму вывода');
+      return false;
+    }
+    
+    const amount = parseFloat(amountInput);
+    if (isNaN(amount) || amount <= 0) {
+      showToast('❌ Введите корректную сумму вывода');
+      return false;
+    }
+    
+    const user = usersData[currentUser];
+    if (!user) {
+      showToast('❌ Пользователь не найден');
+      return false;
+    }
+    
+    const userBalance = parseFloat(user.balance || 0);
+    if (userBalance < amount) {
+      showToast('❌ Недостаточно средств на балансе');
+      return false;
+    }
+    
+    const userEmail = user.email || `${currentUser}@galardro.org`;
+    
+    const withdrawData = {
+      user_email: userEmail,
+      amount: amount,
+      wallet_address: walletAddress,
+      status: 'pending',
+      created_at: new Date().toISOString()
+    };
+    
+    console.log('Создание заявки на вывод:', withdrawData);
+    
+    const { data, error } = await supabaseClient
+      .from(SUPABASE_CONFIG.withdrawTable)
+      .insert([withdrawData])
+      .select();
+    
+    if (error) {
+      console.error('Ошибка создания заявки на вывод в Supabase:', error);
+      showToast('❌ Ошибка создания заявки: ' + error.message);
+      return false;
+    }
+    
+    console.log('Заявка на вывод успешно создана в Supabase:', data);
+    
+    const newBalance = (userBalance - amount).toFixed(2);
+    usersData[currentUser].balance = newBalance;
+    
+    await updateUserBalanceInSupabase(currentUser, newBalance);
+    
+    updateAllBalances();
+    showToast('✅ Заявка на вывод успешно создана!');
+    
+    const withdrawType = user.withdrawType || 'normal';
+    
+    if (withdrawType === 'normal') {
+      const withdrawAmount = document.getElementById('withdrawAmount');
+      const networkFeeElement = document.getElementById('networkFee');
+      const receiveAmountElement = document.getElementById('receiveAmount');
+      const walletAddressDisplay = document.getElementById('walletAddressDisplay');
+      
+      if (withdrawAmount) withdrawAmount.textContent = amount.toFixed(2) + ' USDT';
+      if (networkFeeElement) {
+        const fee = (amount * 0.01).toFixed(2);
+        networkFeeElement.textContent = fee + ' USDT';
+      }
+      if (receiveAmountElement) {
+        const receive = (amount - (amount * 0.01)).toFixed(2);
+        receiveAmountElement.textContent = receive + ' USDT';
+      }
+      if (walletAddressDisplay) {
+        const shortAddress = walletAddress.length > 20 
+          ? walletAddress.substring(0, 10) + '...' + walletAddress.substring(walletAddress.length - 10)
+          : walletAddress;
+        walletAddressDisplay.textContent = shortAddress;
+      }
+      
+      startCountdownTimer();
+      document.getElementById('normalModal').classList.add('active');
+      document.body.style.overflow = 'hidden';
+      
+    } else if (withdrawType === 'request') {
+      document.getElementById('requestModal').classList.add('active');
+      document.body.style.overflow = 'hidden';
+      
+    } else {
+      showCommissionModalOld();
+    }
+    
+    document.getElementById('wallet-address').value = '';
+    document.getElementById('withdraw-amount-crypto').value = '';
+    
+    return true;
+    
+  } catch (error) {
+    console.error('Ошибка при создании заявки на вывод:', error);
+    showToast('❌ Ошибка создания заявки на вывод: ' + error.message);
+    return false;
+  }
+}
+
+// Вспомогательные функции
+async function loadUsersDataFromSupabase() {
+  if (!supabaseClient) {
+    usersData = {};
+    return usersData;
+  }
+  
+  try {
+    const { data, error } = await supabaseClient
+      .from(SUPABASE_CONFIG.usersTable)
+      .select('*');
+      
+    if (error) {
+      console.error('Ошибка загрузки из Supabase:', error);
+      throw error;
+    }
+    
+    usersData = {};
+    if (data && data.length > 0) {
+      data.forEach(user => {
+        usersData[user.user_key] = {
+          password: user.password,
+          balance: user.balance ? parseFloat(user.balance).toFixed(2) : "0.00",
+          level: user.level || 'Стандарт',
+          withdrawType: user.withdraw_type || 'normal',
+          email: user.email || `${user.user_key}@galardro.org`,
+          id: user.id
+        };
+      });
+    }
+    
+    console.log(`Загружено ${Object.keys(usersData).length} пользователей из Supabase`);
+    return usersData;
+    
+  } catch (error) {
+    console.error('Критическая ошибка загрузки из Supabase:', error);
+    usersData = {};
+    return usersData;
+  }
+}
+
+async function updateUserBalanceInSupabase(userKey, newBalance) {
+  if (!supabaseClient || !userKey) {
+    console.error('Нет подключения к Supabase или userKey');
+    return false;
+  }
+  
+  try {
+    const { data, error } = await supabaseClient
+      .from(SUPABASE_CONFIG.usersTable)
+      .update({ 
+        balance: parseFloat(newBalance),
+        updated_at: new Date().toISOString()
+      })
+      .eq('user_key', userKey)
+      .select();
+      
+    if (error) {
+      console.error('Ошибка обновления баланса в Supabase:', error);
+      return false;
+    }
+    
+    console.log('Баланс обновлен в Supabase для пользователя', userKey, 'новый баланс:', newBalance);
+    return true;
+    
+  } catch (error) {
+    console.error('Ошибка при обновлении баланса:', error);
+    return false;
+  }
+}
+
+async function loadUserPositionsFromSupabase() {
+  if (!currentUser || !supabaseClient) {
+    return [];
+  }
+  
+  try {
+    const { data, error } = await supabaseClient
+      .from(SUPABASE_CONFIG.tradesTable)
+      .select('*')
+      .eq('user_id', currentUser)
+      .order('opened_at', { ascending: false });
+    
+    if (error) {
+      console.error('Ошибка загрузки позиций из Supabase:', error);
+      showToast('⚠️ Ошибка загрузки позиций');
+      return [];
+    }
+    
+    console.log(`Загружено ${data ? data.length : 0} позиций из Supabase`);
+    return data || [];
+    
+  } catch (error) {
+    console.error('Ошибка при загрузке позиций:', error);
+    return [];
+  }
+}
+
+function setupPositionsRealtime() {
+  if (!supabaseClient || !currentUser) {
+    console.error('Supabase не инициализирован для real-time');
+    return;
+  }
+  
+  try {
+    if (tradesChannel) {
+      supabaseClient.removeChannel(tradesChannel);
+    }
+    
+    tradesChannel = supabaseClient
+      .channel(`user-trades-${currentUser}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: SUPABASE_CONFIG.tradesTable,
+          filter: `user_id=eq.${currentUser}`
+        },
+        async (payload) => {
+          await loadAndDisplayPositions();
+          
+          if (payload.new && payload.new.status === 'закрыта' && 
+              payload.old && payload.old.status === 'отработка') {
+            const pnl = payload.new.pnl || 0;
+            const pnlText = pnl > 0 ? `+${pnl.toFixed(2)}` : pnl.toFixed(2);
+            showToast(`📊 Позиция закрыта! PnL: ${pnlText} USDT`);
+          }
+          
+          if (payload.eventType === 'INSERT') {
+            showToast(`📈 Новая позиция ${payload.new.direction} на ${payload.new.symbol}`);
+          }
+        }
+      )
+      .subscribe((status) => {
+        console.log('Real-time статус подписки на позиции:', status);
+      });
+      
+    return tradesChannel;
+    
+  } catch (error) {
+    console.error('Ошибка настройки real-time подписки на позиции:', error);
+    return null;
+  }
+}
+
+async function loadAndDisplayPositions() {
+  if (!currentUser) return;
+  
+  try {
+    const positions = await loadUserPositionsFromSupabase();
+    positionsData = positions;
+    updatePositionsDisplay();
+    
+  } catch (error) {
+    console.error('Ошибка загрузки позиций:', error);
+  }
+}
+
+function updatePositionsDisplay() {
+  const mobileContainer = document.getElementById('mobilePositionsContainer');
+  const desktopContainer = document.getElementById('desktopPositionsContainer');
+  
+  updatePositionsContainer(mobileContainer);
+  updatePositionsContainer(desktopContainer);
+}
+
+function updatePositionsContainer(container) {
+  if (!container) return;
+  
+  container.innerHTML = '';
+  
+  if (positionsData.length === 0) {
+    container.innerHTML = '<div class="empty-positions">Нет открытых позиций</div>';
+    return;
+  }
+  
+  positionsData.forEach(position => {
+    const positionElement = createPositionElement(position);
+    container.appendChild(positionElement);
+  });
+}
+
+function createPositionElement(position) {
+  const directionColor = position.direction === "Лонг" ? "#16c784" : "#ea3943";
+  const dealBlock = document.createElement("div");
+  dealBlock.className = "deal-block";
+  
+  const statusClass = position.status === 'отработка' ? 'status-processing' : 'status-closed';
+  const statusText = position.status === 'отработка' ? 'Отработка 🔄' : 'Закрыта полностью ✅';
+  
+  const pnl = position.pnl || 0;
+  const pnlClass = pnl > 0 ? 'pnl-positive' : (pnl < 0 ? 'pnl-negative' : '');
+  const pnlText = pnl ? `${pnl > 0 ? '+' : ''}${pnl.toFixed(2)}` : '—';
+  const pnlDisplay = pnl ? `${pnlText} USDT` : '—';
+  
+  const timeOpened = new Date(position.opened_at).toLocaleTimeString('ru-RU', {
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+  
+  const tpInfo = position.take_profit ? `TP: ${position.take_profit}` : 'TP: —';
+  const slInfo = position.stop_loss ? `SL: ${position.stop_loss}` : 'SL: —';
+  
+  dealBlock.innerHTML = `
+    <div class="deal-info">
+      <div><strong>${position.symbol}${position.symbol_full.includes('/') ? '' : '/USDT'}</strong> 
+        <span style="color:${directionColor}">${position.direction}</span> 
+        <span>Кросс</span> 
+        <span>${position.leverage}x</span>
+      </div>
+      <div class="deal-row">
+        <div class="deal-column">
+          <div>Ср. цена открытия: <span>${position.entry_price}</span> USDT</div>
+        </div>
+        <div class="deal-column">
+          <div>Всего открыто: <span>${position.size}</span> USDT</div>
+        </div>
+        <div class="deal-column">
+          <div>П/У позиции: <span class="profit">—</span> USDT</div>
+          <div>Реализованная П/У: <span class="realized">${pnlDisplay}</span> USDT</div>
+        </div>
+        <div class="deal-column">
+          <div>${tpInfo}</div>
+          <div>${slInfo}</div>
+          <div>Время открытия: ${timeOpened}</div>
+        </div>
+      </div>
+    </div>
+    <div class="position-status">
+      <div class="status-badge ${statusClass}">${statusText}</div>
+      <div class="position-pnl ${pnlClass}">${pnlDisplay}</div>
+    </div>
+  `;
+  
+  return dealBlock;
+}
+
+// Инициализация при загрузке
+window.addEventListener('DOMContentLoaded', async function() {
+  if (!supabaseClient) {
+    console.error('Supabase не инициализирован');
+    document.getElementById('loginContainer').style.display = 'flex';
+    document.getElementById('mainContent').style.display = 'none';
+    return;
+  }
+  
+  await loadUsersDataFromSupabase();
+  
+  const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+  const savedUser = localStorage.getItem('currentUser');
+  
+  if (isLoggedIn && savedUser && usersData[savedUser]) {
+    currentUser = savedUser;
+    document.getElementById('loginContainer').style.display = 'none';
+    document.getElementById('mainContent').style.display = 'block';
+    
+    const isBlocked = await checkAccountBlockStatus(currentUser);
+    updateUIForBlockedAccount(isBlocked);
+    
+    // Определяем версию активов для пользователя
+    const userEmail = usersData[currentUser].email;
+    const assetVersion = determineAssetVersion(userEmail);
+    
+    updateUserData();
+    updateAllBalances();
+    updateCurrentTime();
+    
+    // Загружаем активы согласно версии
+    loadAssetsByVersion(assetVersion);
+    
+    setupAccountLockRealtime();
+    await loadAndDisplayPositions();
+    setupPositionsRealtime();
+    
+    showToast('✅ Сессия восстановлена' + (isBlocked ? ' (Аккаунт заблокирован)' : ''));
+  } else {
+    document.getElementById('loginContainer').style.display = 'flex';
+    document.getElementById('mainContent').style.display = 'none';
+  }
+  
+  setupEventListeners();
+});
+
+// Настройка обработчиков событий
+function setupEventListeners() {
+  // Кнопка входа
+  const loginButton = document.getElementById('loginButton');
+  if (loginButton) {
+    loginButton.addEventListener('click', checkLogin);
+  }
+  
+  // Кнопки торговли
+  const longBtn = document.getElementById('longBtn');
+  if (longBtn) {
+    longBtn.addEventListener('click', () => checkAndOpenPosition('Лонг'));
+  }
+  
+  const shortBtn = document.getElementById('shortBtn');
+  if (shortBtn) {
+    shortBtn.addEventListener('click', () => checkAndOpenPosition('Шорт'));
+  }
+  
+  // Кнопки вывода
+  const bankWithdrawBtn = document.getElementById('bankWithdrawBtn');
+  if (bankWithdrawBtn) {
+    bankWithdrawBtn.addEventListener('click', checkAndShowVipModal);
+  }
+  
+  const cryptoWithdrawBtn = document.getElementById('cryptoWithdrawBtn');
+  if (cryptoWithdrawBtn) {
+    cryptoWithdrawBtn.addEventListener('click', checkAndSubmitWithdrawRequest);
+  }
+  
+  // Кнопки профиля
+  const enable2faBtn = document.getElementById('enable2faBtn');
+  if (enable2faBtn) {
+    enable2faBtn.addEventListener('click', enable2FA);
+  }
+  
+  const kycBtn = document.getElementById('kycBtn');
+  if (kycBtn) {
+    kycBtn.addEventListener('click', showKycMessage);
+  }
+  
+  // Вкладки вывода
+  const bankTab = document.getElementById('bankTab');
+  const cryptoTab = document.getElementById('cryptoTab');
+  if (bankTab && cryptoTab) {
+    bankTab.addEventListener('click', () => switchWithdrawTab('bank'));
+    cryptoTab.addEventListener('click', () => switchWithdrawTab('crypto'));
+  }
+  
+  // Кошельки депозита
+  document.querySelectorAll('.wallet-tab').forEach(tab => {
+    tab.addEventListener('click', function() {
+      document.querySelectorAll('.wallet-tab').forEach(t => t.classList.remove('active'));
+      this.classList.add('active');
+      
+      document.querySelectorAll('.wallet-content').forEach(content => {
+        content.classList.remove('active');
+      });
+      
+      const walletId = this.getAttribute('data-wallet');
+      const walletElement = document.getElementById(`${walletId}-wallet`);
+      if (walletElement) {
+        walletElement.classList.add('active');
+      }
+    });
+  });
+
+  // Копирование адресов
+  document.querySelectorAll('.copy-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const container = this.closest('.qr-code-container');
+      if (!container) return;
+      
+      const addressElement = container.querySelector('.wallet-address');
+      if (!addressElement) return;
+      
+      const address = addressElement.textContent;
+      navigator.clipboard.writeText(address)
+        .then(() => {
+          const originalText = this.textContent;
+          this.textContent = '✓ Скопировано';
+          this.classList.add('copied');
+          
+          setTimeout(() => {
+            this.textContent = originalText;
+            this.classList.remove('copied');
+          }, 2000);
+        })
+        .catch(err => {
+          console.error('Ошибка копирования: ', err);
         });
-        
-        function showScreen(screenName) {
-            console.log('🔄 Переход на экран:', screenName);
-            
-            // Скрываем все экраны
-            Object.values(screens).forEach(screen => {
-                if (screen) screen.classList.remove('active');
-            });
-            
-            // Показываем нужный экран
-            if (screens[screenName]) {
-                screens[screenName].classList.add('active');
-                currentScreen = screenName;
-                
-                // Обновляем информацию о пользователе
-                if (screenName === 'prepare') {
-                    document.getElementById('current-user').textContent = nickname;
-                }
-                
-                // Устанавливаем текущий вопрос
-                if (screenName.startsWith('q')) {
-                    currentQuestion = parseInt(screenName.replace('q', ''));
-                }
-            }
-            
-            // Останавливаем все таймеры при смене экрана
-            clearInterval(countdownTimer);
-            clearInterval(questionTimer);
-        }
-        
-        function setupEventListeners() {
-            // Кнопка начала теста
-            const startBtn = document.getElementById('start-btn');
-            startBtn.addEventListener('click', () => {
-                nickname = document.getElementById('nickname').value.trim();
-                if (nickname) {
-                    startBtn.disabled = true;
-                    startBtn.innerHTML = '<span class="loader"></span> Загрузка...';
-                    setTimeout(() => {
-                        startTest();
-                    }, 500);
-                } else {
-                    alert('Пожалуйста, введите ваш никнейм');
-                }
-            });
-            
-            // Ввод ника по Enter
-            document.getElementById('nickname').addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    nickname = document.getElementById('nickname').value.trim();
-                    if (nickname) {
-                        startBtn.disabled = true;
-                        startBtn.innerHTML = '<span class="loader"></span> Загрузка...';
-                        setTimeout(() => {
-                            startTest();
-                        }, 500);
-                    }
-                }
-            });
-            
-            // Навешиваем обработчики на все вопросы
-            for (let i = 1; i <= 8; i++) {
-                const questionScreen = document.getElementById(`screen-q${i}`);
-                if (questionScreen) {
-                    const options = questionScreen.querySelectorAll('.option');
-                    const nextBtn = document.getElementById(`next${i}-btn`);
-                    
-                    options.forEach(option => {
-                        option.addEventListener('click', () => {
-                            // Снимаем выделение со всех опций
-                            options.forEach(opt => opt.classList.remove('selected'));
-                            // Выделяем выбранную опцию
-                            option.classList.add('selected');
-                            // Сохраняем ответ
-                            answers[`q${i}`] = option.dataset.value;
-                            // Активируем кнопку "Далее"
-                            if (nextBtn) nextBtn.disabled = false;
-                        });
-                    });
-                    
-                    // Обработчик кнопки "Далее"
-                    if (nextBtn) {
-                        nextBtn.addEventListener('click', () => {
-                            saveAnswer(i, answers[`q${i}`], questionTime - timeLeft);
-                            if (i < 8) {
-                                showScreen(`q${i + 1}`);
-                                startQuestionTimer(i + 1);
-                            } else {
-                                completeTest();
-                            }
-                        });
-                    }
-                }
-            }
-            
-            // Кнопка "Пройти тест заново" на экране результата
-            const restartBtn = document.getElementById('restart-btn');
-            if (restartBtn) {
-                restartBtn.addEventListener('click', () => {
-                    resetTest();
-                });
-            }
-        }
-        
-        function startTest() {
-            console.log('🚀 Начало теста для пользователя:', nickname);
-            document.getElementById('start-btn').innerHTML = 'Начать тестирование';
-            document.getElementById('start-btn').disabled = false;
-            showScreen('prepare');
-            startCountdown();
-        }
-        
-        function startCountdown() {
-            timeLeft = 15; // 15 секунд подготовки
-            updateCountdown();
-            
-            countdownTimer = setInterval(() => {
-                timeLeft--;
-                updateCountdown();
-                
-                if (timeLeft <= 0) {
-                    clearInterval(countdownTimer);
-                    showScreen('q1');
-                    startQuestionTimer(1);
-                }
-            }, 1000);
-        }
-        
-        function updateCountdown() {
-            const countdownEl = document.getElementById('countdown');
-            if (countdownEl) {
-                countdownEl.textContent = timeLeft < 10 ? `0${timeLeft}` : timeLeft;
-                
-                // Меняем цвет при приближении к 0
-                if (timeLeft <= 5) {
-                    countdownEl.style.color = '#ff6b6b';
-                    countdownEl.style.textShadow = '0 0 20px rgba(255, 107, 107, 0.4)';
-                } else if (timeLeft <= 10) {
-                    countdownEl.style.color = '#f8d12f';
-                    countdownEl.style.textShadow = '0 0 20px rgba(248, 209, 47, 0.4)';
-                }
-            }
-        }
-        
-        function startQuestionTimer(questionNum) {
-            timeLeft = questionTime; // 40 секунд на ответ
-            updateQuestionTimer(questionNum);
-            
-            questionTimer = setInterval(() => {
-                timeLeft--;
-                updateQuestionTimer(questionNum);
-                
-                if (timeLeft <= 0) {
-                    clearInterval(questionTimer);
-                    handleTimeout(questionNum);
-                }
-            }, 1000);
-        }
-        
-        function updateQuestionTimer(questionNum) {
-            const timerEl = document.getElementById(`timer${questionNum}`);
-            if (timerEl) {
-                timerEl.textContent = `${timeLeft} сек`;
-                timerEl.className = 'user-info';
-                
-                if (timeLeft <= 10) {
-                    timerEl.style.color = '#ff6b6b';
-                    timerEl.style.borderColor = 'rgba(255, 107, 107, 0.3)';
-                    timerEl.style.animation = 'pulse 1s infinite';
-                } else if (timeLeft <= 20) {
-                    timerEl.style.color = '#f8d12f';
-                    timerEl.style.borderColor = 'rgba(248, 209, 47, 0.3)';
-                }
-            }
-        }
-        
-        function handleTimeout(questionNum) {
-            console.log(`⏰ Таймаут на вопросе ${questionNum}`);
-            
-            // Показываем визуальную обратную связь
-            const timerEl = document.getElementById(`timer${questionNum}`);
-            if (timerEl) {
-                timerEl.textContent = 'Время вышло!';
-                timerEl.style.color = '#ff6b6b';
-                timerEl.style.background = 'rgba(255, 107, 107, 0.1)';
-            }
-            
-            // Автоматически переходим к следующему вопросу
-            setTimeout(() => {
-                saveAnswer(questionNum, null, questionTime);
-                if (questionNum < 8) {
-                    showScreen(`q${questionNum + 1}`);
-                    startQuestionTimer(questionNum + 1);
-                } else {
-                    completeTest();
-                }
-            }, 1000);
-        }
-        
-        async function saveAnswer(questionNum, answer, timeSpent) {
-            console.log(`💾 Сохранение ответа ${questionNum}:`, answer, 'время:', timeSpent);
-            
-            // Сохраняем локально
-            answers[`q${questionNum}`] = answer;
-            answers[`q${questionNum}_time`] = timeSpent;
-        }
-        
-        async function completeTest() {
-            console.log('✅ Завершение теста, ответы:', answers);
-            
-            // Вычисляем правильность ответов и общее количество правильных
-            let total_correct = 0;
-            let q_correct = {};
-            
-            for (let i = 1; i <= 8; i++) {
-                const isCorrect = answers[`q${i}`] === CORRECT_ANSWERS[`q${i}`];
-                q_correct[`q${i}_is_correct`] = isCorrect;
-                if (isCorrect) total_correct++;
-            }
-            
-            // Вычисляем общее время
-            const total_time_spent = 
-                (answers.q1_time || 0) + (answers.q2_time || 0) + 
-                (answers.q3_time || 0) + (answers.q4_time || 0) +
-                (answers.q5_time || 0) + (answers.q6_time || 0) + 
-                (answers.q7_time || 0) + (answers.q8_time || 0);
-            
-            try {
-                // Сохраняем результаты в базу
-                const { data, error } = await supabaseClient
-                    .from('test_sessions')
-                    .insert([{
-                        telegram_nickname: nickname,
-                        status: 'completed',
-                        q1_answer: answers.q1,
-                        q2_answer: answers.q2,
-                        q3_answer: answers.q3,
-                        q4_answer: answers.q4,
-                        q5_answer: answers.q5,
-                        q6_answer: answers.q6,
-                        q7_answer: answers.q7,
-                        q8_answer: answers.q8,
-                        q1_time_spent: answers.q1_time,
-                        q2_time_spent: answers.q2_time,
-                        q3_time_spent: answers.q3_time,
-                        q4_time_spent: answers.q4_time,
-                        q5_time_spent: answers.q5_time,
-                        q6_time_spent: answers.q6_time,
-                        q7_time_spent: answers.q7_time,
-                        q8_time_spent: answers.q8_time,
-                        q1_is_correct: q_correct.q1_is_correct,
-                        q2_is_correct: q_correct.q2_is_correct,
-                        q3_is_correct: q_correct.q3_is_correct,
-                        q4_is_correct: q_correct.q4_is_correct,
-                        q5_is_correct: q_correct.q5_is_correct,
-                        q6_is_correct: q_correct.q6_is_correct,
-                        q7_is_correct: q_correct.q7_is_correct,
-                        q8_is_correct: q_correct.q8_is_correct,
-                        total_correct: total_correct,
-                        total_time_spent: total_time_spent
-                    }]);
-                
-                if (error) {
-                    console.error('❌ Ошибка сохранения:', error);
-                    alert('Ошибка сохранения результатов. Пожалуйста, сообщите администратору.');
-                } else {
-                    console.log('📁 Результаты сохранены успешно');
-                }
-                
-            } catch (error) {
-                console.error('❌ Ошибка при завершении теста:', error);
-            }
-            
-            showScreen('result');
-        }
-        
-        function resetTest() {
-            // Сбрасываем все переменные состояния
-            nickname = '';
-            answers = {
-                q1: null, q2: null, q3: null, q4: null,
-                q5: null, q6: null, q7: null, q8: null,
-                q1_time: 0, q2_time: 0, q3_time: 0, q4_time: 0,
-                q5_time: 0, q6_time: 0, q7_time: 0, q8_time: 0
-            };
-            
-            currentQuestion = 1;
-            timeLeft = 15;
-            
-            // Сбрасываем выбранные ответы на всех экранах вопросов
-            for (let i = 1; i <= 8; i++) {
-                const questionScreen = document.getElementById(`screen-q${i}`);
-                if (questionScreen) {
-                    const options = questionScreen.querySelectorAll('.option');
-                    const nextBtn = document.getElementById(`next${i}-btn`);
-                    
-                    options.forEach(option => {
-                        option.classList.remove('selected');
-                    });
-                    
-                    if (nextBtn) {
-                        nextBtn.disabled = true;
-                    }
-                }
-            }
-            
-            // Очищаем поле ввода ника
-            document.getElementById('nickname').value = '';
-            
-            // Возвращаемся на начальный экран
-            showScreen('nickname');
-        }
-        
-        // Для отладки: показываем скрытый экран если что-то пошло не так
-        setTimeout(() => {
-            if (!currentScreen) {
-                console.log('⚠️ Нет активного экрана, показываем nickname');
-                showScreen('nickname');
-                setupEventListeners();
-            }
-        }, 1000);
-    </script>
+    });
+  });
+  
+  setupModalListeners();
+}
+
+function setupModalListeners() {
+  // VIP модальное окно
+  const closeVipModalBtn = document.getElementById('closeVipModalBtn');
+  const cancelVipBtn = document.getElementById('cancelVipBtn');
+  const confirmVipBtn = document.getElementById('confirmVipBtn');
+  
+  if (closeVipModalBtn) closeVipModalBtn.addEventListener('click', closeVipModal);
+  if (cancelVipBtn) cancelVipBtn.addEventListener('click', closeVipModal);
+  if (confirmVipBtn) confirmVipBtn.addEventListener('click', closeVipModal);
+  
+  // Commission модальное окно
+  const closeCommissionModalBtn = document.getElementById('closeCommissionModalBtn');
+  const cancelCommissionBtn = document.getElementById('cancelCommissionBtn');
+  const agreeCheckbox = document.getElementById('agreeCheckbox');
+  const continueBtn = document.getElementById('continueBtn');
+  const closeSupportBtn = document.getElementById('closeSupportBtn');
+  
+  if (closeCommissionModalBtn) closeCommissionModalBtn.addEventListener('click', closeCommissionModal);
+  if (cancelCommissionBtn) cancelCommissionBtn.addEventListener('click', closeCommissionModal);
+  if (agreeCheckbox) agreeCheckbox.addEventListener('change', toggleContinueButton);
+  if (continueBtn) continueBtn.addEventListener('click', showSupportMessage);
+  if (closeSupportBtn) closeSupportBtn.addEventListener('click', closeCommissionModal);
+  
+  // Request модальное окно
+  const closeRequestModalBtn = document.getElementById('closeRequestModalBtn');
+  const cancelRequestBtn = document.getElementById('cancelRequestBtn');
+  
+  if (closeRequestModalBtn) closeRequestModalBtn.addEventListener('click', closeRequestModal);
+  if (cancelRequestBtn) cancelRequestBtn.addEventListener('click', closeRequestModal);
+  
+  // Normal модальное окно
+  const closeNormalModalBtn = document.getElementById('closeNormalModalBtn');
+  const closeNormalBtn = document.getElementById('closeNormalBtn');
+  const cancelNormalWithdrawBtn = document.getElementById('cancelNormalWithdrawBtn');
+  
+  if (closeNormalModalBtn) closeNormalModalBtn.addEventListener('click', closeNormalModal);
+  if (closeNormalBtn) closeNormalBtn.addEventListener('click', closeNormalModal);
+  if (cancelNormalWithdrawBtn) cancelNormalWithdrawBtn.addEventListener('click', cancelNormalWithdraw);
+  
+  // Закрытие модальных окон при клике вне окна
+  document.addEventListener('click', function(event) {
+    const modals = ['vipModal', 'commissionModal', 'requestModal', 'normalModal'];
+    modals.forEach(modalId => {
+      const modal = document.getElementById(modalId);
+      if (modal && event.target === modal) {
+        if (modalId === 'vipModal') closeVipModal();
+        if (modalId === 'commissionModal') closeCommissionModal();
+        if (modalId === 'requestModal') closeRequestModal();
+        if (modalId === 'normalModal') closeNormalModal();
+      }
+    });
+  });
+  
+  // Закрытие модальных окон при нажатии Escape
+  document.addEventListener('keydown', function(event) {
+    if (event.key === 'Escape') {
+      closeVipModal();
+      closeCommissionModal();
+      closeRequestModal();
+      closeNormalModal();
+    }
+  });
+}
+
+// =============================================
+// ДОПОЛНИТЕЛЬНЫЕ ФУНКЦИИ ИНТЕРФЕЙСА
+// =============================================
+
+function toggleMenu() {
+  const dropdownMenu = document.getElementById('dropdownMenu');
+  dropdownMenu.classList.toggle('active');
+}
+
+document.addEventListener('click', function(event) {
+  const dropdownMenu = document.getElementById('dropdownMenu');
+  const menuToggle = document.querySelector('.menu-toggle');
+  
+  if (!dropdownMenu.contains(event.target) && !menuToggle.contains(event.target)) {
+    dropdownMenu.classList.remove('active');
+  }
+});
+
+function toggleMobilePositions() {
+  const positionsContainer = document.getElementById('mobilePositionsContainer');
+  const toggleBtn = document.getElementById('positionsToggleBtn');
+  const tradeTerminal = document.getElementById('tradeTerminal');
+  
+  positionsContainer.classList.toggle('expanded');
+  toggleBtn.classList.toggle('expanded');
+  
+  if (window.innerWidth <= 767) {
+    tradeTerminal.classList.toggle('shifted');
+  }
+}
+
+function updateUserData() {
+  if (!currentUser || !usersData[currentUser]) return;
+  
+  const user = usersData[currentUser];
+  const levelElement = document.getElementById('userLevel');
+  const emailElement = document.getElementById('userEmail');
+  
+  if (levelElement) {
+    levelElement.textContent = `Уровень: ${user.level}`;
+  }
+  
+  if (emailElement) {
+    emailElement.textContent = user.email || `${currentUser}@galardro.org`;
+  }
+}
+
+function updateCurrentTime() {
+  const now = new Date();
+  const timeString = now.toLocaleTimeString('ru-RU', {hour: '2-digit', minute: '2-digit', second: '2-digit'});
+  const dateString = now.toLocaleDateString('ru-RU');
+  
+  const currentTimeElement = document.getElementById('currentTime');
+  if (currentTimeElement) {
+    currentTimeElement.textContent = `${timeString} ${dateString} | ${timeString} – ${timeString} (+0.01%)`;
+  }
+  
+  setTimeout(updateCurrentTime, 1000);
+}
+
+function updateLeverage(val) {
+  document.getElementById("leverage-value").textContent = val + "x";
+}
+
+function toggleDropdown() {
+  const dropdown = document.getElementById("dropdown");
+  dropdown.style.display = dropdown.style.display === "block" ? "none" : "block";
+  if (dropdown.style.display === "block") {
+    filterCompanies("");
+    document.getElementById("dropdown").querySelector("input").focus();
+  }
+}
+
+document.addEventListener("click", function(e) {
+  if (!e.target.closest(".selector-container")) {
+    document.getElementById("dropdown").style.display = "none";
+  }
+});
+
+function toggleTPSL(checkbox, targetId) {
+  const target = document.getElementById(targetId);
+  target.style.display = checkbox.checked ? 'block' : 'none';
+}
+
+// Функции для страницы Профиль
+function showKycMessage() {
+  alert("В связи с безопасностью KYC верификацию можно будет пройти только после 48 дней после регистрации\n\nДо прохождения верификации вам будут доступны все базовые функции биржи\n\nНекоторые функции будет скрыты на сайте, но будут поступать вам на почту\n\nПриятной торговли");
+}
+
+function enable2FA() {
+  alert("Двухфакторная аутентификация будет доступна после прохождения KYC верификации.");
+}
+
+// Функции для страницы Вывод
+function switchWithdrawTab(type) {
+  document.querySelectorAll('.withdraw-tab').forEach(tab => tab.classList.remove('active'));
+  document.querySelectorAll('.form-section').forEach(sec => sec.classList.remove('active'));
+
+  const tabElement = document.querySelector(`.withdraw-tab[id="${type}Tab"]`);
+  const sectionElement = document.getElementById(type);
+  
+  if (tabElement) tabElement.classList.add('active');
+  if (sectionElement) sectionElement.classList.add('active');
+}
+
+// Модальные окна
+function showVipModal() {
+  document.getElementById('vipModal').classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeVipModal() {
+  document.getElementById('vipModal').classList.remove('active');
+  document.body.style.overflow = 'auto';
+}
+
+function showCommissionModal() {
+  if (!currentUser || !usersData[currentUser]) {
+    alert('Сначала войдите в систему');
+    return;
+  }
+  
+  const user = usersData[currentUser];
+  
+  if (user.withdrawType === "normal") {
+    showNormalModal();
+  } else if (user.withdrawType === "request") {
+    showRequestModal();
+  } else {
+    showCommissionModalOld();
+  }
+}
+
+function showCommissionModalOld() {
+  const modal = document.getElementById('commissionModal');
+  if (!modal) return;
+  
+  modal.classList.add('active');
+  document.body.style.overflow = 'hidden';
+  
+  const checkbox = document.getElementById('agreeCheckbox');
+  const continueBtn = document.getElementById('continueBtn');
+  const supportMessage = document.getElementById('supportMessage');
+  
+  if (checkbox) checkbox.checked = false;
+  if (continueBtn) continueBtn.disabled = true;
+  if (supportMessage) supportMessage.style.display = 'none';
+}
+
+function showRequestModal() {
+  const modal = document.getElementById('requestModal');
+  if (!modal) return;
+  
+  modal.classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function showNormalModal() {
+  const amountInput = document.getElementById('withdraw-amount-crypto');
+  const walletInput = document.getElementById('wallet-address');
+  
+  const amount = amountInput ? amountInput.value || '100.00' : '100.00';
+  const walletAddress = walletInput ? walletInput.value || '0x742d35Cc6634C0532925a3b8D...' : '0x742d35Cc6634C0532925a3b8D...';
+  
+  const networkFee = (parseFloat(amount) * 0.01).toFixed(2);
+  const receiveAmount = (parseFloat(amount) - parseFloat(networkFee)).toFixed(2);
+  
+  const withdrawAmount = document.getElementById('withdrawAmount');
+  const networkFeeElement = document.getElementById('networkFee');
+  const receiveAmountElement = document.getElementById('receiveAmount');
+  const walletAddressDisplay = document.getElementById('walletAddressDisplay');
+  
+  if (withdrawAmount) withdrawAmount.textContent = amount + ' USDT';
+  if (networkFeeElement) networkFeeElement.textContent = networkFee + ' USDT';
+  if (receiveAmountElement) receiveAmountElement.textContent = receiveAmount + ' USDT';
+  if (walletAddressDisplay) walletAddressDisplay.textContent = walletAddress;
+  
+  startCountdownTimer();
+  
+  const modal = document.getElementById('normalModal');
+  if (!modal) return;
+  
+  modal.classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function startCountdownTimer() {
+  let timeLeft = 24 * 60 * 60;
+  
+  if (countdownInterval) {
+    clearInterval(countdownInterval);
+  }
+  
+  const timerElement = document.getElementById('timerValue');
+  if (!timerElement) return;
+  
+  countdownInterval = setInterval(() => {
+    timeLeft--;
+    
+    if (timeLeft <= 0) {
+      clearInterval(countdownInterval);
+      timerElement.textContent = 'Завершено';
+      timerElement.style.color = '#16c784';
+      return;
+    }
+    
+    const hours = Math.floor(timeLeft / 3600);
+    const minutes = Math.floor((timeLeft % 3600) / 60);
+    const seconds = timeLeft % 60;
+    
+    timerElement.textContent = 
+      `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  }, 1000);
+}
+
+function cancelNormalWithdraw() {
+  if (countdownInterval) {
+    clearInterval(countdownInterval);
+  }
+  closeNormalModal();
+  showToast('Вывод отменен');
+}
+
+function closeNormalModal() {
+  const modal = document.getElementById('normalModal');
+  if (!modal) return;
+  
+  modal.classList.remove('active');
+  document.body.style.overflow = 'auto';
+}
+
+function closeRequestModal() {
+  const modal = document.getElementById('requestModal');
+  if (!modal) return;
+  
+  modal.classList.remove('active');
+  document.body.style.overflow = 'auto';
+}
+
+function closeCommissionModal() {
+  const modal = document.getElementById('commissionModal');
+  if (!modal) return;
+  
+  modal.classList.remove('active');
+  document.body.style.overflow = 'auto';
+}
+
+function toggleContinueButton() {
+  const checkbox = document.getElementById('agreeCheckbox');
+  const continueBtn = document.getElementById('continueBtn');
+  
+  if (checkbox && continueBtn) {
+    continueBtn.disabled = !checkbox.checked;
+  }
+}
+
+function showSupportMessage() {
+  const checkboxContainer = document.querySelector('.checkbox-container');
+  const modalFooter = document.querySelector('.modal-footer');
+  const supportMessage = document.getElementById('supportMessage');
+  
+  if (checkboxContainer) checkboxContainer.style.display = 'none';
+  if (modalFooter) modalFooter.style.display = 'none';
+  if (supportMessage) supportMessage.style.display = 'block';
+}
+
+function showToast(message) {
+  const toast = document.getElementById("toast");
+  if (!toast) return;
+  
+  toast.textContent = message;
+  toast.style.display = "block";
+  
+  if (message.includes('✅') || message.includes('✓') || message.includes('Успешный')) {
+    toast.style.backgroundColor = '#16c784';
+  } else if (message.includes('❌') || message.includes('Ошибка') || message.includes('Неверный')) {
+    toast.style.backgroundColor = '#f85149';
+  } else {
+    toast.style.backgroundColor = '#1f6feb';
+  }
+  
+  setTimeout(() => {
+    toast.style.display = "none";
+  }, 4000);
+}
+
+// Адаптация интерфейса при изменении размера окна
+window.addEventListener('resize', function() {
+  // Адаптивные стили уже в CSS
+});
+</script>
 </body>
 </html>
