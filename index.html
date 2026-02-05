@@ -487,14 +487,14 @@
             
             <div class="warning">
                 <h3>Важная информация</h3>
-                <p>На каждый вопрос дается <strong>ровно 20 секунд</strong>.</p>
+                <p>На каждый вопрос дается <strong>ровно 30 секунд</strong>.</p>
                 <p>Если не успеете ответить за отведенное время, ответ засчитывается как <strong>неправильный</strong>.</p>
                 <p>Всего вопросов: <strong>15</strong>. После начала теста остановить его <strong>невозможно</strong>.</p>
             </div>
             
             <div style="text-align: center; margin-bottom: 20px;">
                 <div style="color: #b7bdc6; font-size: 16px; margin-bottom: 10px;">Тест начнется через:</div>
-                <div id="countdown" class="countdown">30</div>
+                <div id="countdown" class="countdown">15</div>
             </div>
             
             <div style="color: #5e6673; font-size: 14px; text-align: center;">
@@ -508,7 +508,7 @@
                 <div class="logo">
                     <span>❓</span> ВОПРОС 1/15
                 </div>
-                <div class="user-info" id="timer1">20 сек</div>
+                <div class="user-info" id="timer1">30 сек</div>
             </div>
             
             <div class="progress">
@@ -534,7 +534,7 @@
                 <div class="logo">
                     <span>❓</span> ВОПРОС 2/15
                 </div>
-                <div class="user-info" id="timer2">20 сек</div>
+                <div class="user-info" id="timer2">30 сек</div>
             </div>
             
             <div class="progress">
@@ -561,7 +561,7 @@
                 <div class="logo">
                     <span>❓</span> ВОПРОС 3/15
                 </div>
-                <div class="user-info" id="timer3">20 сек</div>
+                <div class="user-info" id="timer3">30 сек</div>
             </div>
             
             <div class="progress">
@@ -957,8 +957,8 @@
         
         let countdownTimer = null;
         let questionTimer = null;
-        let timeLeft = 30;
-        let questionTime = 20;
+        let timeLeft = 15;
+        let questionTime = 30;
         let currentQuestion = 1;
         
         // Инициализируем объекты ответов
@@ -1117,7 +1117,7 @@
         }
         
         function startCountdown() {
-            timeLeft = 30;
+            timeLeft = 15;
             updateCountdown();
             
             countdownTimer = setInterval(() => {
@@ -1149,7 +1149,7 @@
         }
         
         function startQuestionTimer(questionNum) {
-            timeLeft = 20;
+            timeLeft = 30;
             updateQuestionTimer(questionNum);
             
             questionTimer = setInterval(() => {
@@ -1193,7 +1193,7 @@
             
             // Автоматически переходим к следующему вопросу
             setTimeout(() => {
-                saveAnswer(questionNum, null, 20);
+                saveAnswer(questionNum, null, 30);
                 if (questionNum < 15) {
                     showScreen(`q${questionNum + 1}`);
                     startQuestionTimer(questionNum + 1);
